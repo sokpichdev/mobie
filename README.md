@@ -166,7 +166,7 @@ off to each other (see [`AGENTS.md`](AGENTS.md)).
 
 ### Gate & Delivery
 
-- [Code Reviewer](agents/code_reviewer.md) — correctness, style, risk gating
+- [Code Reviewer](agents/code_reviewer.md) — correctness, concurrency, style, and risk gating (/review)
 - [Release Manager](agents/release_manager.md) — versioning, signing, store submission
 - [DevOps Expert](agents/devops_expert.md) — CI/CD, Fastlane, automation
 
