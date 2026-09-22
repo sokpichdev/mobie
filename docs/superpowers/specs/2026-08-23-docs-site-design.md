@@ -12,7 +12,7 @@
 
 The toolkit has no published web presence, but it already advertises one. `README.md`
 carries both a docs badge and a nav link pointing at
-`https://sokpichdev.github.io/mobile-engineering-agents/`, which returns 404. Every visitor
+`https://sokpichdev.github.io/mobie/`, which returns 404. Every visitor
 who follows either link hits a dead end.
 
 Meanwhile the repository already contains a documentation site's worth of source material:
@@ -32,7 +32,7 @@ structure, search, and a page that explains the toolkit to someone who has never
 The toolkit is consumed by cloning it into a user's project as `.mobile-agents/`:
 
 ```bash
-git clone https://github.com/sokpichdev/mobile-engineering-agents.git .mobile-agents
+git clone https://github.com/sokpichdev/mobie.git .mobile-agents
 ```
 
 Every file in the repository therefore lands inside every user's project. A static site
@@ -112,7 +112,7 @@ the toolkit never reads the site.
 
 ```mermaid
 flowchart LR
-  A["mobile-engineering-agents<br/>(content, cloned by users)"] -->|"git clone --depth 1<br/>at build time"| B["mobie-site<br/>(renderer, never cloned by users)"]
+  A["mobie<br/>(content, cloned by users)"] -->|"git clone --depth 1<br/>at build time"| B["mobie-site<br/>(renderer, never cloned by users)"]
   A -->|"repository_dispatch<br/>on push to main"| C["deploy.yml"]
   C --> B
   B -->|"actions/deploy-pages"| D["mobie.sokpich.dev"]
@@ -152,7 +152,7 @@ VitePress distinguishes `root` (where `.vitepress/` lives) from `srcDir` (where 
 lives). This design sets `root` to the site repository and `srcDir` to the fetched toolkit.
 
 1. **Fetch.** `fetch-toolkit.sh` runs
-   `git clone --depth 1 https://github.com/sokpichdev/mobile-engineering-agents .content/toolkit`.
+   `git clone --depth 1 https://github.com/sokpichdev/mobie .content/toolkit`.
    Shallow, because history is irrelevant to rendering.
 2. **Assemble.** `assemble.sh` copies `site/index.md` and `site/public/` into
    `.content/toolkit/`. This is the only write into the fetched tree, and it adds the
@@ -203,7 +203,7 @@ implementation plan must verify. **Fallback if it does not hold:** `assemble.sh`
 Steps: checkout site, setup Node, `fetch-toolkit.sh`, `assemble.sh`, build, then
 `actions/upload-pages-artifact` and `actions/deploy-pages`.
 
-`mobile-engineering-agents/.github/workflows/notify-site.yml` triggers on push to `main`
+`mobie/.github/workflows/notify-site.yml` triggers on push to `main`
 and fires a `repository_dispatch` at `mobie-site`.
 
 **Credential.** The dispatch requires a fine-grained personal access token scoped to

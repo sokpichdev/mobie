@@ -1,4 +1,4 @@
-// Commit message rules for mobile-engineering-agents.
+// Commit message rules for mobie.
 // Enforces Conventional Commits, e.g.  feat(security): add public-key TLS pinning
 // Enforced in CI by .github/workflows/commitlint.yml; see standards/git_standards.md.
 module.exports = {
