@@ -57,7 +57,7 @@ Confirm that the toolkit has been properly initialized and all critical files an
    - Re-clone if the issue persists:
 
      ```bash
-     git clone https://github.com/sokpichdev/mobile-engineering-agents.git
+     git clone https://github.com/sokpichdev/mobie.git
      ```
 
 ## Validation Steps

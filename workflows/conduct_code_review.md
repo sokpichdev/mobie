@@ -4,33 +4,44 @@ Led by the [Code Reviewer](../agents/code_reviewer.md). Produces a prioritized, 
 
 ## Objective
 
-Evaluate a change for correctness, security, architecture fit, and test adequacy; deliver a
+Evaluate a change for correctness, security, architecture fit, concurrency safety, and test adequacy; deliver a
 clear verdict with severity-tagged, actionable feedback.
 
 ## Inputs
 
 - The diff/PR, its stated intent, and acceptance criteria.
-- Relevant context (linked issue, design notes).
+- Relevant context (linked issue, design notes, repo standards).
 
 ## Outputs
 
-- A review with findings (Critical/High/Medium/Low/Nit) and a verdict:
+- A structured review with findings (Critical/High/Medium/Low/Nit), signal words, and a verdict:
   Approve / Approve-with-nits / Request-changes.
 
 ## Step-by-Step Process
 
-1. **Understand intent** — read the description and acceptance criteria first.
-2. **Correctness pass** — edge/error/empty/boundary cases, concurrency, resource cleanup.
-3. **Architecture pass** — layering respected, DTOs/framework not leaked, DI used, SRP.
-4. **Security pass** — secrets/PII, auth, input handling; route deep concerns to
-   [Security Expert](../agents/security_expert.md).
-5. **Tests pass** — coverage matches risk; deterministic; bug fixes include regression tests.
-6. **Readability/standards** — consistency with [`standards/`](../standards/); naming; dead code.
-7. **Summarize** — prioritize findings; separate "must fix" from nits; give the verdict.
+1. **Resolve Scope (Phase 0)**:
+   - Identify changed files via PR (`gh pr view <n>`) or git (`git diff --name-status`).
+   - Distinguish modified/added source files from deleted files (check deletions for accidental regression).
+2. **Automated Checks (Phase 1)**:
+   - Run available linters (`swiftlint`, `flutter analyze`) and collect warnings.
+3. **Spec Adherence & Correctness**:
+   - Compare diff against PR description and issue acceptance criteria.
+   - Check edge/boundary conditions, offline handling, and error paths.
+4. **Concurrency & Memory Safety**:
+   - Verify Swift 6 strict concurrency, Sendable types, `@MainActor` UI isolation, retain cycle prevention (`[weak self]`), and task cancellation.
+5. **Architecture & Boundary Conformance**:
+   - Verify Clean Architecture / MVVM / MVP layering, no DTO leakage, protocol-based DI.
+6. **Security Pass**:
+   - Check Keychain usage, no plaintext secrets or PII, SSL pinning. Route deep concerns to [Security Expert](../agents/security_expert.md).
+7. **Test Adequacy**:
+   - Ensure deterministic unit tests for new logic and regression tests for bug fixes.
+8. **Synthesize Findings & Issue Verdict**:
+   - Classify findings with signal words (`Pass`, `Suggestion`, `Convention`, `Issue`) and severity.
+   - Critical/High findings block merge and require `file:line` + concrete fix snippets.
 
 ## Validation Steps
 
-- Every Critical/High finding has a location and a concrete fix.
+- Every Critical/High finding has a location and a concrete fix snippet.
 - The change is evaluated against its acceptance criteria, not just in isolation.
 - Style preferences not in `standards/` are labeled as nits.
 
@@ -44,13 +55,13 @@ clear verdict with severity-tagged, actionable feedback.
 ## AI Agent Instructions
 
 - Use [`checklists/code_review.md`](../checklists/code_review.md) as the baseline.
-- Prioritize by severity; block on Critical/High; be specific (file:line + why + fix).
+- Prioritize by severity; block on Critical/High; be specific (`file:line` + why + fix).
 - Don't bikeshed style while missing correctness/security issues.
 - Verify tests exist and are deterministic before approving.
 
 ## Acceptance Criteria
 
 - [ ] Findings prioritized by severity with locations + fixes.
-- [ ] Correctness, architecture, security, and tests all assessed.
+- [ ] Correctness, architecture, security, concurrency, and tests all assessed.
 - [ ] Verdict issued; Critical/High block merge.
 - [ ] `checklists/code_review.md` applied.

@@ -1,14 +1,14 @@
 {
-  "name": "mobile-engineering-agents",
+  "name": "mobie",
   "version": "1.0.0",
   "private": true,
   "description": "An AI-first engineering toolkit that turns coding agents into Senior/Staff mobile engineers.",
   "license": "MIT",
   "author": "Sok Pich",
-  "homepage": "https://github.com/sokpichdev/mobile-engineering-agents",
+  "homepage": "https://github.com/sokpichdev/mobie",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sokpichdev/mobile-engineering-agents.git"
+    "url": "https://github.com/sokpichdev/mobie.git"
   },
   "scripts": {
     "lint": "npm run lint:md && npm run lint:links",

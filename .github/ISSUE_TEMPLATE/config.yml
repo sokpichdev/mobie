@@ -1,8 +1,8 @@
 blank_issues_enabled: true
 contact_links:
   - name: 📖 Contributing guide
-    url: https://github.com/sokpichdev/mobile-engineering-agents/blob/main/CONTRIBUTING.md
+    url: https://github.com/sokpichdev/mobie/blob/main/CONTRIBUTING.md
     about: Setup, section templates, style, and how platform ports should be structured.
   - name: 💡 Ways to contribute
-    url: https://github.com/sokpichdev/mobile-engineering-agents#-contributing--everyone-is-welcome
+    url: https://github.com/sokpichdev/mobie#-contributing--everyone-is-welcome
     about: Find where you fit in — iOS, Android, Flutter, QA, security, docs, web, design, and more.

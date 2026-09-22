@@ -171,6 +171,7 @@ than answering with iOS or Flutter guidance.
 | New/changed API integration | Backend Integrator | Backend → Networking → Security → Testing → Reviewer |
 | Realtime feature | WebSocket Expert | Architect → WebSocket → Security → Testing → Reviewer |
 | Auth / login / tokens | Security Expert | Architect → Security → Networking → Testing → Reviewer |
+| Code review / PR review / `/review` | Code Reviewer | Scope resolution → automated linting → multi-pass analysis → verdict |
 | Bug report | Code Reviewer | Reviewer (triage) → relevant specialist → Testing |
 | "It's slow / janky" | Performance Expert | Performance → relevant specialist → Testing |
 | Cleanup / tech debt | Refactoring Expert | Refactoring → Testing → Reviewer |

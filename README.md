@@ -49,7 +49,7 @@ Get running in three steps. The everyday workflow needs **zero file paths**.
 
 ```bash
 cd your-project
-git clone https://github.com/sokpichdev/mobile-engineering-agents.git .mobile-agents
+git clone https://github.com/sokpichdev/mobie.git .mobile-agents
 echo ".mobile-agents/" >> .gitignore   # optional: keep it out of your repo
 ```
 
@@ -166,7 +166,7 @@ off to each other (see [`AGENTS.md`](AGENTS.md)).
 
 ### Gate & Delivery
 
-- [Code Reviewer](agents/code_reviewer.md) — correctness, style, risk gating
+- [Code Reviewer](agents/code_reviewer.md) — correctness, concurrency, style, and risk gating (/review)
 - [Release Manager](agents/release_manager.md) — versioning, signing, store submission
 - [DevOps Expert](agents/devops_expert.md) — CI/CD, Fastlane, automation
 
@@ -414,7 +414,7 @@ to be an iOS engineer to help. Here's where people of every background fit in:
 
 Three ways in, smallest effort first — pick whichever fits:
 
-1. **Spot something off?** [Open an issue](https://github.com/sokpichdev/mobile-engineering-agents/issues/new/choose)
+1. **Spot something off?** [Open an issue](https://github.com/sokpichdev/mobie/issues/new/choose)
    — a typo, a wrong recommendation, a missing topic, or just an idea.
 2. **Have feedback on agent output?** Tell us what you asked, what you got, and what a senior
    engineer would have done instead — that's some of the most valuable input we receive.
@@ -426,7 +426,7 @@ Three ways in, smallest effort first — pick whichever fits:
 New to the project? These are scoped, beginner-friendly, and have clear acceptance criteria —
 the perfect place to start:
 
-**[Browse `good first issue`s](https://github.com/sokpichdev/mobile-engineering-agents/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)**
+**[Browse `good first issue`s](https://github.com/sokpichdev/mobie/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)**
 
 Your first contribution in four steps:
 

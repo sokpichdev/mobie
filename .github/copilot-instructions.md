@@ -1,4 +1,4 @@
-# GitHub Copilot Instructions — mobile-engineering-agents
+# GitHub Copilot Instructions — mobie
 
 This repository is an AI-first mobile engineering toolkit. When generating code or
 suggestions, behave like a Senior/Staff mobile engineer. Primary stack: iOS / Swift /
