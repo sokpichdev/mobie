@@ -50,6 +50,28 @@ private func setUpConstraints() {
 }
 ```
 
+## Adaptive Layout (iPhone Duo)
+
+Screens must resize across the iPhone Duo outer display (compact width) and inner display
+(regular width), and when folded or in Split View. Full guidance:
+[`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md).
+
+- Never use `UIDevice.userInterfaceIdiom`, `UIInterfaceOrientation`, or `UIScreen` bounds for
+  layout decisions. Track `horizontalSizeClass`/`verticalSizeClass` with automatic trait tracking
+  and lay out against the view's bounds.
+- Pin content to `safeAreaLayoutGuide`/`layoutMarginsGuide`. A vertical bar adds an asymmetric
+  leading or trailing inset.
+- Put bar items on `navigationItem` (hosted by a `UINavigationController`). Never build a custom
+  `UIToolbar`/`UINavigationBar`/`UITabBar`, because those can't move to the vertical bar.
+- Create items with both a title and an image (`UIBarButtonItem(title:image:primaryAction:)`).
+  Pin Done in `pinnedTrailingGroup`, group items in `UIBarButtonItemGroup`, set
+  `visibilityPriority`, and put rare actions in `additionalOverflowItems`.
+- Prefer `UISplitViewController` and `UIArrangementViewController` for two-pane content. Custom
+  views avoid active regions from `reservedRegions(kind:)` by updating constraint constants,
+  never by creating constraints in `layoutSubviews`.
+- Override `preferredVerticalBarBehavior` to return `.disabled` only for full-screen,
+  non-scrolling UI.
+
 ## View Controller Lifecycle
 
 - One-time setup happens in `viewDidLoad`; anything that must repeat on re-entry goes in
@@ -106,4 +128,6 @@ final class ProfilePresenter: ProfilePresenterProtocol {
 
 - [`../skills/architecture/ios/mvp.md`](../skills/architecture/ios/mvp.md)
 - [`../skills/ui/ios/uikit_view_layer.md`](../skills/ui/ios/uikit_view_layer.md)
+- [`../skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md)
 - [`../checklists/uikit_review.md`](../checklists/uikit_review.md)
+- [`../checklists/iphone_duo_review.md`](../checklists/iphone_duo_review.md)

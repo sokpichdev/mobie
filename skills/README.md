@@ -31,10 +31,11 @@ centralized in [`standards/flutter_standards.md`](../standards/flutter_standards
 
 ## UI
 
-> Note: `skills/ui/` currently holds UIKit files only because SwiftUI's equivalent guidance lives in [`standards/swiftui_standards.md`](../standards/swiftui_standards.md) and [`agents/swiftui_expert.md`](../agents/swiftui_expert.md).
+> Note: apart from the cross-paradigm iPhone Duo skill, `skills/ui/` holds UIKit files only because SwiftUI's equivalent guidance lives in [`standards/swiftui_standards.md`](../standards/swiftui_standards.md) and [`agents/swiftui_expert.md`](../agents/swiftui_expert.md).
 
 - [uikit_view_layer.md](ui/ios/uikit_view_layer.md) (iOS)
 - [massive_view_controller.md](ui/ios/massive_view_controller.md) (iOS)
+- [iphone_duo_adaptive_layout.md](ui/ios/iphone_duo_adaptive_layout.md) (iOS — SwiftUI + UIKit: resizing, reserved regions, vertical bars, arrangement views)
 
 > Flutter widget guidance lives in [`standards/flutter_standards.md`](../standards/flutter_standards.md)
 > and [`agents/flutter_expert.md`](../agents/flutter_expert.md); the native boundary is covered by

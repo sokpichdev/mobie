@@ -97,9 +97,9 @@ right experts and scales its process to the task. Head to
 | Directory | What it gives your agent | Count |
 |-----------|--------------------------|-------|
 | [`agents/`](agents/) | Loadable expert roles (architect, security, testing…) | 17 |
-| [`skills/`](skills/) | Deep, single-topic know-how (auth, websockets, caching…) | 54 |
-| [`workflows/`](workflows/) | Step-by-step procedures (build a feature, integrate an API…) | 13 |
-| [`checklists/`](checklists/) | Objective, automatable review gates | 10 |
+| [`skills/`](skills/) | Deep, single-topic know-how (auth, websockets, caching, iPhone Duo layout…) | 55 |
+| [`workflows/`](workflows/) | Step-by-step procedures (build a feature, integrate an API…) | 14 |
+| [`checklists/`](checklists/) | Objective, automatable review gates | 11 |
 | [`standards/`](standards/) | Non-negotiable rules (coding, security, testing, git) | 10 |
 | [`architecture/`](architecture/) | Reference designs with Mermaid diagrams | 6 |
 | [`prompts/`](prompts/) | Copy-paste prompts for common tasks | 10 |

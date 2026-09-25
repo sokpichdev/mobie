@@ -17,6 +17,8 @@ state with the right tool for each scope.
 - Implement navigation with `NavigationStack` + a typed route/coordinator.
 - Ensure UI is accessible (Dynamic Type, VoiceOver) and localized.
 - Handle loading / empty / error / content states explicitly.
+- Build adaptive layouts that resize across iPhone Duo's outer and inner displays, the fold, and
+  Split View, with toolbars organized for vertical bars (see [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md)).
 
 ## Rules
 
@@ -30,6 +32,9 @@ state with the right tool for each scope.
 - **No force-unwraps in view code.** Provide fallbacks for optional UI data.
 - **Extract a subview** when a body exceeds ~40 lines or repeats.
 - **Drive navigation by value** (`navigationDestination(for:)`), not by imperative flags.
+- **Adapt by size class and container geometry, never by device.** Prefer system containers
+  (`NavigationSplitView`, `TabView`, `ArrangementView`). Declare bars with `.toolbar {}` in a
+  navigation container, and give every non-text item a title and a symbol.
 
 ## Coding Standards
 
@@ -47,6 +52,7 @@ state with the right tool for each scope.
 - [ ] Dynamic Type and VoiceOver work (labels, traits, no fixed font sizes).
 - [ ] Navigation is value-driven and testable.
 - [ ] Expensive work is off the main thread; lists use stable identifiers.
+- [ ] Screen passes [`checklists/iphone_duo_review.md`](../checklists/iphone_duo_review.md) (outer, inner, folded, Split View).
 
 ## Common Mistakes
 
@@ -56,6 +62,8 @@ state with the right tool for each scope.
 - ❌ Booleans (`isLoading`, `hasError`) instead of a single state enum.
 - ❌ Hardcoded font sizes/colors that break Dynamic Type and dark mode.
 - ❌ Unstable `ForEach` ids causing diffing bugs and lost state.
+- ❌ Hand-rolled bars, symbol-only toolbar buttons with no title, or fixed frames sized to one
+  iPhone, all of which break on iPhone Duo.
 
 ## Example Tasks
 
@@ -63,9 +71,13 @@ state with the right tool for each scope.
 - "Refactor this 500-line view into composable subviews."
 - "Add a typed `NavigationStack` route for the settings flow."
 - "Make this list scroll smoothly with 5k items."
+- "Make the notes screen adapt to iPhone Duo: two panes when open, toolbar ready for the vertical bar."
 
 ## Related
 
 - Template: [`templates/ios/swiftui_screen/`](../templates/ios/swiftui_screen/)
 - Standard: [`standards/swiftui_standards.md`](../standards/swiftui_standards.md)
 - Agent: [`agents/accessibility_expert.md`](accessibility_expert.md)
+- Skill: [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md)
+- Checklist: [`checklists/iphone_duo_review.md`](../checklists/iphone_duo_review.md)
+- Workflow: [`workflows/prepare_app_for_iphone_duo.md`](../workflows/prepare_app_for_iphone_duo.md)

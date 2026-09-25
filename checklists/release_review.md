@@ -25,6 +25,8 @@ Owned by the [Release Manager](../agents/release_manager.md) with
 ## Store Readiness
 
 - [ ] Metadata, screenshots, and what's-new accurate for this version.
+- [ ] iPhone Duo: built with Xcode 27.1+. Outer (1398×2034) and inner (2007×2853) screenshots
+      prepared once App Store Connect accepts them.
 - [ ] Privacy manifest + App Privacy "data use" declarations match actual data collection.
 - [ ] Required permission usage strings (`Info.plist`) present and accurate.
 

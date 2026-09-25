@@ -15,6 +15,8 @@ accessibility guidance and WCAG 2.1 AA. See [`swiftui_standards.md`](../standard
 
 - [ ] Uses semantic `Font` text styles, not fixed point sizes.
 - [ ] Layout works at the largest accessibility text size (no clipping/overlap/truncation).
+- [ ] Largest text size also verified on the iPhone Duo outer display, which is short and has
+      vertical bars.
 - [ ] Images/icons scale appropriately or have text alternatives.
 
 ## Color & Contrast

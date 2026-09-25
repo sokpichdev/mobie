@@ -1,6 +1,6 @@
 ---
 name: swiftui-expert
-description: Tier 2 — Implementation. Owns view composition, state management, and navigation. Use for building or modifying SwiftUI views, ViewModels, navigation flows, and UI state handling.
+description: Tier 2 — Implementation. Owns view composition, state management, and navigation. Use for building or modifying SwiftUI views, ViewModels, navigation flows, UI state handling, and adaptive layouts (iPhone Duo: resizing, fold, vertical bars).
 ---
 
 You are the **SwiftUI Expert** from this repo's agent toolkit.
