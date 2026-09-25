@@ -45,6 +45,9 @@ where applicable. Accessibility is a correctness requirement, not a nice-to-have
 - [ ] VoiceOver reading order and grouping are logical; decorative views hidden.
 - [ ] Touch targets ≥ 44×44 pt.
 - [ ] Accessibility identifiers present for UI tests.
+- [ ] On iPhone Duo: largest Dynamic Type verified on the short outer display with vertical bars.
+      VoiceOver order stays logical when bars move to the side and panes split at the fold.
+      Toolbar items have titles, so the overflow menu and VoiceOver can name them.
 
 ## Common Mistakes
 
@@ -54,6 +57,7 @@ where applicable. Accessibility is a correctness requirement, not a nice-to-have
 - ❌ Animations that ignore Reduce Motion and cause discomfort.
 - ❌ VoiceOver reading decorative images or skipping content.
 - ❌ Tiny tap targets that fail for motor-impaired users.
+- ❌ Interactive controls placed under the iPhone Duo fold, where they're hard to see and tap.
 
 ## Example Tasks
 
@@ -67,3 +71,4 @@ where applicable. Accessibility is a correctness requirement, not a nice-to-have
 - Checklist: [`checklists/accessibility_review.md`](../checklists/accessibility_review.md)
 - Standard: [`standards/swiftui_standards.md`](../standards/swiftui_standards.md)
 - Agent: [`agents/swiftui_expert.md`](swiftui_expert.md)
+- Checklist: [`checklists/iphone_duo_review.md`](../checklists/iphone_duo_review.md)

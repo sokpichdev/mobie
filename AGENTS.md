@@ -166,6 +166,7 @@ than answering with iOS or Flutter guidance.
 | New screen / UI change (Flutter) | Flutter Expert | Flutter → Accessibility → Testing → Reviewer |
 | State management refactor *(Flutter)* | Flutter Architect | Architect → Flutter → Testing → Reviewer |
 | Native interop / platform channel *(Flutter)* | Flutter Architect | Architect → Flutter → Security → Testing → Reviewer |
+| iPhone Duo / adaptive layout adoption *(iOS)* | `UI Expert` | UI Expert → Accessibility → Testing → Reviewer (add iOS Architect first for multi-screen adoption; see [`workflows/prepare_app_for_iphone_duo.md`](workflows/prepare_app_for_iphone_duo.md)) |
 | Massive view controller / legacy cleanup *(iOS)* | Refactoring Expert | Refactoring → UIKit → Testing → Reviewer |
 | UIKit → SwiftUI migration *(iOS)* | iOS Architect | Architect → UIKit → SwiftUI → Testing → Reviewer |
 | New/changed API integration | Backend Integrator | Backend → Networking → Security → Testing → Reviewer |

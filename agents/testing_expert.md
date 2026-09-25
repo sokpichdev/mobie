@@ -46,6 +46,8 @@ seams (DI, protocols).
 - [ ] Async/cancellation behavior is tested.
 - [ ] UI tests cover only critical journeys and use accessibility ids.
 - [ ] Bug fixes include a failing-first regression test.
+- [ ] UI changes have previews or snapshots at compact (iPhone Duo outer) and regular (inner) width.
+      UI tests never rely on coordinates, which move between poses.
 
 ## Common Mistakes
 
@@ -62,6 +64,7 @@ seams (DI, protocols).
 - "Add integration tests for `AccountRepository` against stubbed `APIClient` and JSON fixtures."
 - "Write a UI test for the login → dashboard happy path."
 - "Add a regression test reproducing the duplicate-message bug, then confirm it passes."
+- "Add compact- and regular-width snapshot tests for the inbox so iPhone Duo regressions are caught."
 
 ## Related
 

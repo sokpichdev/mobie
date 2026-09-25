@@ -8,6 +8,7 @@ Outputs · Step-by-Step Process · Validation Steps · Failure Scenarios · AI A
 
 - [create_feature.md](create_feature.md) — feature end-to-end
 - [migrate_uikit_to_swiftui.md](migrate_uikit_to_swiftui.md) — strangler-fig migration of UIKit screen to SwiftUI
+- [prepare_app_for_iphone_duo.md](prepare_app_for_iphone_duo.md) — audit and fix resizing, fold, and vertical bars for iPhone Duo (iOS)
 - [integrate_rest_api.md](integrate_rest_api.md)
 - [integrate_graphql.md](integrate_graphql.md)
 - [integrate_websocket.md](integrate_websocket.md)

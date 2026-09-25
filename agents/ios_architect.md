@@ -51,6 +51,8 @@ that implementation agents work within.
 - [ ] No premature abstraction (no interface with a single forever-implementation without reason).
 - [ ] DI strategy is consistent and testable.
 - [ ] Decisions are documented with rationale.
+- [ ] Adaptive-layout concerns (size classes, iPhone Duo fold, vertical bars) stay in the view
+      layer. ViewModels, presenters, and Domain know nothing about displays or folds.
 
 ## Common Mistakes
 
@@ -60,6 +62,8 @@ that implementation agents work within.
 - ❌ Over-modularizing a small app into dozens of packages with high coupling.
 - ❌ Leaking `Codable` DTOs into the Presentation layer.
 - ❌ Mixing navigation logic into views with no coordinator/router seam.
+- ❌ Designing a separate "phone" and "tablet" UI tree instead of one resizable hierarchy. iPhone
+  Duo expects one app that expands a level of hierarchy on its inner display.
 
 ## Example Tasks
 
@@ -68,9 +72,11 @@ that implementation agents work within.
 - "We have a 4000-line `AppViewModel`. Propose a layered decomposition with a migration order."
 - "Decide whether the chat feature should be its own Swift Package and define its public API."
 - "Review this PR's structure for layering violations and report blockers."
+- "Plan iPhone Duo adoption: which screens move to split or arrangement containers, and in what order."
 
 ## Related
 
 - Workflow: [`workflows/create_feature.md`](../workflows/create_feature.md)
 - Architecture: [`architecture/clean_architecture.md`](../architecture/clean_architecture.md)
 - Skill: [`skills/architecture/ios/clean_architecture.md`](../skills/architecture/ios/clean_architecture.md)
+- Workflow: [`workflows/prepare_app_for_iphone_duo.md`](../workflows/prepare_app_for_iphone_duo.md)

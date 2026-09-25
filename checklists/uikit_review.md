@@ -32,6 +32,9 @@ block on Critical/High. Complements [`uikit_standards.md`](../standards/uikit_st
 - [ ] Cells registered by type, never by string literal.
 - [ ] `prepareForReuse` implemented for any cell holding mutable state or an in-flight image load.
 - [ ] Diffable data source used instead of manual `reloadData()` where applicable.
+- [ ] No `userInterfaceIdiom`/`UIInterfaceOrientation`/`UIScreen` bounds in layout logic. Bar items
+      live on `navigationItem`, with a title and an image (see
+      [`iphone_duo_review.md`](iphone_duo_review.md)).
 
 ## Lifecycle
 

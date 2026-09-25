@@ -64,6 +64,9 @@ fi
    - Proper state wrappers (`@State`, `@Binding`, `@Observable`).
    - View body efficiency: no side-effects or heavy computations in `body`, avoiding
      redundant re-renders.
+   - Adaptive layout: no idiom, orientation, or screen-bounds layout logic. Bars come from
+     navigation containers, and toolbar items have a title and a symbol. For UI diffs, apply
+     [`checklists/iphone_duo_review.md`](../checklists/iphone_duo_review.md).
 4. **Architecture & Boundary Conformance**:
    - Clean Architecture / MVVM / MVP layering respected; no DTO or network model leakage
      into Presentation.
@@ -110,5 +113,6 @@ Classify findings using signal words:
 
 - Workflow: [`workflows/conduct_code_review.md`](../workflows/conduct_code_review.md)
 - Checklist: [`checklists/code_review.md`](../checklists/code_review.md)
+- Checklist: [`checklists/iphone_duo_review.md`](../checklists/iphone_duo_review.md)
 - Prompt: [`prompts/code_review.md`](../prompts/code_review.md)
 - Slash Command: [`.claude/commands/review.md`](../.claude/commands/review.md)

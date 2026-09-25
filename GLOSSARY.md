@@ -43,6 +43,23 @@ Shared terminology used across the toolkit. Agents and skills assume these defin
 - **Platform channel** — The typed bridge from Dart to native Swift/Kotlin. `pigeon` generates
   both sides from one schema; the channel itself is a Data-layer detail.
 
+### iPhone Duo terms
+
+- **iPhone Duo** — Apple's foldable iPhone (2026). It has a compact-width **outer display** and a
+  regular-width **inner display**, each with a front camera, joined by a center hinge. See
+  [`skills/ui/ios/iphone_duo_adaptive_layout.md`](skills/ui/ios/iphone_duo_adaptive_layout.md).
+- **Pose** — A way the device is held or placed: closed, open, partially folded like a book,
+  tent, laptop, and so on. Layouts adapt through size classes, not per-pose designs.
+- **Reserved region** — An area content avoids. An **occlusion** is a region hardware covers
+  (the outer camera or Dynamic Island, or the inner camera while active). A **division** is the
+  fold when partially open. A region can be active or inactive (`ReservedRegion` /
+  `UIView.ReservedRegion`).
+- **Vertical bar** — The side-of-display bar where iPhone Duo places the status bar, toolbar,
+  navigation controls, and tab bar in most poses.
+- **Arrangement view** — A primary + secondary container (`ArrangementView` /
+  `UIArrangementViewController`) with **split** or **overlay** styles that adapt to size and the
+  fold.
+
 ## Networking
 
 - **REST** — Resource-oriented HTTP API.

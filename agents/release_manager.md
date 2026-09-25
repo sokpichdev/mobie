@@ -51,6 +51,8 @@ ready rollback plan. Releases are checklist-driven and auditable.
 - [ ] Signing/provisioning valid and not near expiry.
 - [ ] Regression + QA sign-off complete; crash-free baseline acceptable.
 - [ ] Store metadata, screenshots, and privacy declarations current.
+- [ ] Built with Xcode 27.1+ for iPhone Duo. iPhone Duo screenshots prepared (outer 1398×2034,
+      inner 2007×2853 px, plus landscape) once App Store Connect accepts them.
 - [ ] Phased rollout configured with monitoring.
 - [ ] Rollback/hotfix plan documented and feasible.
 

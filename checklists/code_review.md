@@ -30,6 +30,8 @@ Critical/High/Medium/Low/Nit; **block on Critical/High**.
 - [ ] Views are lightweight; no heavy computations, side effects, or formatting in `body`.
 - [ ] Collections use stable, unique identifiers (`Identifiable` / `id: \.id`).
 - [ ] Accessibility: VoiceOver labels, traits, and Dynamic Type scaling considered.
+- [ ] Adaptive layout: no idiom, orientation, or screen-bounds layout logic. iOS UI diffs pass
+      [`iphone_duo_review.md`](iphone_duo_review.md).
 
 ## Security & Data Privacy
 

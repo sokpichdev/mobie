@@ -14,6 +14,7 @@ Act as a Senior iOS Engineer specializing in programmatic UIKit and Model-View-P
 - Implement programmatic layouts using `UIView` subclasses and Auto Layout constraints built once at initialization.
 - Implement coordinator navigation to decouple view controllers from navigation routing.
 - Decompose massive view controllers into lightweight controllers, views, data sources, and presenters.
+- Make screens resize for iPhone Duo (outer and inner displays, fold, Split View), with bar items on `navigationItem` ready for vertical presentation (see [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md)).
 
 ## Rules
 
@@ -24,6 +25,7 @@ Act as a Senior iOS Engineer specializing in programmatic UIKit and Model-View-P
 - **Hold the view `weak`; mark presenters `@MainActor` and `final`.**
 - **Layout lives in a `UIView` subclass**, never in the view controller.
 - **Follow the surrounding convention.** Do not convert existing MVP screens to MVVM.
+- **Adapt by traits, never by device.** No `userInterfaceIdiom`, `UIInterfaceOrientation`, or `UIScreen` bounds in layout logic. No custom `UIToolbar`/`UITabBar`/`UINavigationBar`.
 
 ## Coding Standards
 
@@ -41,6 +43,7 @@ Act as a Senior iOS Engineer specializing in programmatic UIKit and Model-View-P
 - [ ] Presenter has unit tests covering success and failure paths using a spy view and stub repository.
 - [ ] Auto Layout constraints are built in `UIView.init` using layout anchors, not `layoutSubviews`.
 - [ ] Navigation is handled by a coordinator or delegate, not pushed directly from the view controller.
+- [ ] Screen passes [`checklists/iphone_duo_review.md`](../checklists/iphone_duo_review.md) (outer, inner, folded, Split View).
 
 ## Common Mistakes
 
@@ -50,6 +53,7 @@ Act as a Senior iOS Engineer specializing in programmatic UIKit and Model-View-P
 - ❌ Building Auto Layout constraints inside `layoutSubviews` or `viewDidLayoutSubviews`.
 - ❌ Hardcoded string literals for table or collection view cell reuse identifiers.
 - ❌ Converting an existing UIKit MVP screen to MVVM as part of an unrelated edit.
+- ❌ Title-only or custom-view bar items that can never appear in iPhone Duo's vertical bar.
 
 ## Example Tasks
 
@@ -57,6 +61,7 @@ Act as a Senior iOS Engineer specializing in programmatic UIKit and Model-View-P
 - "Extract presentation logic and layout out of this 1,200-line `ViewController`."
 - "Write XCTest unit tests for `ArticleListPresenter` using a spy view and stub repository."
 - "Implement coordinator navigation for the payment flow."
+- "Replace the custom bottom `UIToolbar` on the editor with `navigationItem` groups for iPhone Duo."
 
 ## Related
 
@@ -68,4 +73,7 @@ Act as a Senior iOS Engineer specializing in programmatic UIKit and Model-View-P
 - Skill: [`skills/concurrency/ios/promisekit_to_async.md`](../skills/concurrency/ios/promisekit_to_async.md)
 - Template: [`templates/ios/uikit_mvp_screen/`](../templates/ios/uikit_mvp_screen/)
 - Checklist: [`checklists/uikit_review.md`](../checklists/uikit_review.md)
+- Skill: [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md)
+- Checklist: [`checklists/iphone_duo_review.md`](../checklists/iphone_duo_review.md)
+- Workflow: [`workflows/prepare_app_for_iphone_duo.md`](../workflows/prepare_app_for_iphone_duo.md)
 - Workflow: [`workflows/migrate_uikit_to_swiftui.md`](../workflows/migrate_uikit_to_swiftui.md)
