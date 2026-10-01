@@ -6,6 +6,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { execFileSync } = require('node:child_process');
 
 const PKG_ROOT = path.resolve(__dirname, '..');
 const PKG = require('../package.json');
@@ -38,6 +39,13 @@ const ENTRY_FILES = {
   gemini: { file: 'GEMINI.md', load: `@${TOOLKIT_DIR}/GEMINI.md` },
   codex: { file: 'AGENTS.md', load: `Read \`${TOOLKIT_DIR}/AGENTS.md\` at session start and follow it.` },
 };
+
+// With --local, mobie never edits an entry file that already exists (it may be shared with the
+// team). Claude Code has a personal alternative; the other tools are left unwired instead.
+const LOCAL_ENTRY_FILES = { claude: 'CLAUDE.local.md' };
+
+const EXCLUDE_START = '# mobie:start';
+const EXCLUDE_END = '# mobie:end';
 
 // Subagents that only make sense on one platform; everything else is shared.
 const PLATFORM_AGENTS = {
@@ -211,16 +219,101 @@ const countOf = (text, needle) => text.split(needle).length - 1;
 
 // Returns the new file content, or null when the markers are damaged (a start without its end,
 // or several blocks) — guessing the block's extent there could delete the user's own text.
-function upsertBlock(existing, block) {
+function upsertBlock(existing, block, startMarker = BLOCK_START, endMarker = BLOCK_END) {
   if (existing === null) return `${block}\n`;
-  const starts = countOf(existing, BLOCK_START);
-  const ends = countOf(existing, BLOCK_END);
+  const starts = countOf(existing, startMarker);
+  const ends = countOf(existing, endMarker);
   if (starts === 0 && ends === 0) return `${existing.replace(/\s*$/, '')}\n\n${block}\n`;
-  const start = existing.indexOf(BLOCK_START);
-  const end = existing.indexOf(BLOCK_END);
+  const start = existing.indexOf(startMarker);
+  const end = existing.indexOf(endMarker);
   if (starts !== 1 || ends !== 1 || end < start) return null;
-  return existing.slice(0, start) + block + existing.slice(end + BLOCK_END.length);
+  return existing.slice(0, start) + block + existing.slice(end + endMarker.length);
 }
+
+// Inverse of upsertBlock: the content without our block, or null when there's no intact block.
+function removeBlock(existing, startMarker = BLOCK_START, endMarker = BLOCK_END) {
+  if (countOf(existing, startMarker) !== 1 || countOf(existing, endMarker) !== 1) return null;
+  const start = existing.indexOf(startMarker);
+  const end = existing.indexOf(endMarker) + endMarker.length;
+  if (end < start) return null;
+  const rest = `${existing.slice(0, start).replace(/\s*$/, '')}\n\n${existing.slice(end).replace(/^\s*/, '')}`;
+  return rest.trim() ? `${rest.trim()}\n` : '';
+}
+
+// ---------------------------------------------------------------------------
+// Local installs: keep everything mobie writes out of git via .git/info/exclude, which is
+// per-clone and never committed.
+
+function git(projectDir, args) {
+  return execFileSync('git', args, { cwd: projectDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+}
+
+function gitExclude(projectDir) {
+  try {
+    // Exclude patterns are relative to the repo root, which may sit above the project directory.
+    return { file: path.resolve(projectDir, git(projectDir, ['rev-parse', '--git-path', 'info/exclude'])), prefix: git(projectDir, ['rev-parse', '--show-prefix']) };
+  } catch {
+    return null;
+  }
+}
+
+function isGitIgnored(projectDir, rel) {
+  try {
+    git(projectDir, ['check-ignore', '-q', '--', rel]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Paths among `rels` that git tracks (ignore rules can't hide those).
+function trackedPaths(projectDir, rels) {
+  if (!rels.length) return [];
+  const out = git(projectDir, ['ls-files', '-z', '--full-name', '--', ...rels]);
+  const prefix = git(projectDir, ['rev-parse', '--show-prefix']);
+  return out.split('\0').filter(Boolean).map((p) => p.slice(prefix.length));
+}
+
+// One block per install, keyed by its directory: monorepo subprojects and linked worktrees
+// share one exclude file, and must not overwrite or remove each other's blocks.
+const excludeMarkers = (projectDir) => {
+  const key = toPosix(fs.realpathSync(projectDir));
+  return [`${EXCLUDE_START} [${key}]`, `${EXCLUDE_END} [${key}]`];
+};
+
+// Escapes gitignore metacharacters so a folder like `app[1]` is matched literally.
+const gitPattern = (p) => p.replace(/[[\]*?\\]/g, '\\$&').replace(/ $/, '\\ ');
+
+function excludeBlock([start, end], prefix, paths) {
+  return [
+    `${start} — local install, managed by mobie; edits inside this block are overwritten`,
+    ...paths.map((p) => `/${gitPattern(prefix + p)}`),
+    end,
+  ].join('\n');
+}
+
+// True for a missing file, or one holding nothing but our block (i.e. mobie created it).
+function isOnlyOurBlock(content) {
+  return content === null || removeBlock(content.toString('utf8')) === '';
+}
+
+// Which file each tool's block lives in. In local mode a git-tracked file is the team's and is
+// never edited, and Claude always uses its personal CLAUDE.local.md: a CLAUDE.md that git
+// ignores would be silently replaced by `git pull` once a teammate commits one.
+function resolveEntryFiles(projectDir, tools, local) {
+  const entries = {};
+  for (const tool of tools) {
+    const shared = ENTRY_FILES[tool].file;
+    if (!local) entries[tool] = shared;
+    else if (LOCAL_ENTRY_FILES[tool]) entries[tool] = LOCAL_ENTRY_FILES[tool];
+    else if (!trackedPaths(projectDir, [shared]).length && isOnlyOurBlock(readIfExists(path.join(projectDir, shared)))) entries[tool] = shared;
+    else entries[tool] = null;
+  }
+  return entries;
+}
+
+const previousEntries = (previous) =>
+  previous.entries || Object.fromEntries(previous.tools.map((t) => [t, ENTRY_FILES[t].file]));
 
 // ---------------------------------------------------------------------------
 // Manifest
@@ -240,6 +333,11 @@ function readManifest(projectDir) {
   if (![...PLATFORMS, 'all'].includes(manifest.platform)) throw invalid(`unknown platform "${manifest.platform}"`);
   const badTool = manifest.tools.find((t) => !TOOLS.includes(t));
   if (badTool !== undefined) throw invalid(`unknown tool "${badTool}"`);
+  if (manifest.local !== undefined && typeof manifest.local !== 'boolean') throw invalid('"local" must be true or false');
+  for (const [tool, file] of Object.entries(manifest.entries || {})) {
+    const allowed = TOOLS.includes(tool) && (file === null || file === ENTRY_FILES[tool].file || file === LOCAL_ENTRY_FILES[tool]);
+    if (!allowed) throw invalid(`unexpected entry file for "${tool}"`);
+  }
   for (const [rel, hash] of Object.entries(manifest.files)) {
     const safe = path.posix.normalize(rel) === rel && !rel.split('/').includes('..') && isManagedPath(rel);
     if (!safe) throw invalid(`path outside the toolkit folders: "${rel}"`);
@@ -251,11 +349,27 @@ function readManifest(projectDir) {
 // ---------------------------------------------------------------------------
 // Install / update
 
-function install(projectDir, { platform, tools, force, dryRun, gitignore }, previous) {
+function install(projectDir, { platform, tools, local, force, dryRun, gitignore }, previous) {
   const plan = buildPlan({ platform, tools });
   const oldFiles = previous ? previous.files : {};
   const files = {};
-  const result = { added: [], updated: [], unchanged: [], skipped: [], removed: [], kept: [], entries: [], blocked: [] };
+  const result = { added: [], updated: [], unchanged: [], skipped: [], removed: [], kept: [], entries: [], blocked: [], unwired: [], notes: [] };
+
+  // Resolve git first, so a --local install that can't work fails before writing anything.
+  const exclude = local || (previous && previous.local) ? gitExclude(projectDir) : null;
+  if (local && !exclude) throw new UsageError('--local needs a git repository: it hides the toolkit with .git/info/exclude.');
+  if (local) {
+    const ours = [TOOLKIT_DIR, ...Object.keys(oldFiles).filter((r) => r.startsWith('.claude/'))];
+    const tracked = trackedPaths(projectDir, ours);
+    if (tracked.length) {
+      const shown = tracked.slice(0, 3).join(', ') + (tracked.length > 3 ? `, … (${tracked.length} files)` : '');
+      throw new UsageError(
+        `--local can't hide files that are committed to git: ${shown}.\n` +
+          `Untrack them first (they stay on disk): git rm -r --cached -- ${TOOLKIT_DIR} ${ours.slice(1).join(' ')}`.trim() +
+          ', commit, then run this again.',
+      );
+    }
+  }
   const write = (rel, content) => !dryRun && writeFile(projectDir, rel, content);
 
   for (const [rel, content] of plan) {
@@ -295,8 +409,33 @@ function install(projectDir, { platform, tools, force, dryRun, gitignore }, prev
     }
   }
 
+  const entries = resolveEntryFiles(projectDir, tools, local);
+
+  // A block left behind in a file we no longer use (tool dropped, or --local switched) is removed.
+  if (previous) {
+    for (const [tool, file] of Object.entries(previousEntries(previous))) {
+      if (!file || entries[tool] === file) continue;
+      if (local && trackedPaths(projectDir, [file]).length) {
+        result.notes.push(`${file} is committed to git, so its mobie block was left in place — remove it there if the team agrees`);
+        continue;
+      }
+      const existing = readIfExists(path.join(projectDir, file));
+      const after = existing && removeBlock(existing.toString('utf8'));
+      if (after === null || after === undefined) continue;
+      if (!dryRun) {
+        if (after) writeFile(projectDir, file, after);
+        else fs.rmSync(path.join(projectDir, file));
+      }
+      result.entries.push(`${file} (unwired)`);
+    }
+  }
+
   for (const tool of tools) {
-    const { file } = ENTRY_FILES[tool];
+    const file = entries[tool];
+    if (!file) {
+      result.unwired.push(tool);
+      continue;
+    }
     const existing = readIfExists(path.join(projectDir, file));
     const before = existing && existing.toString('utf8');
     const after = upsertBlock(before, entryBlock(tool, platform));
@@ -305,6 +444,33 @@ function install(projectDir, { platform, tools, force, dryRun, gitignore }, prev
     } else if (after !== before) {
       write(file, after);
       result.entries.push(file);
+    }
+  }
+
+  if (!local && previous && previous.local && !exclude) {
+    result.notes.push('git could not be run, so the mobie block in .git/info/exclude was left in place');
+  }
+  if (exclude) {
+    const excludeFile = exclude.file;
+    const markers = excludeMarkers(projectDir);
+    const existing = readIfExists(excludeFile);
+    const before = existing && existing.toString('utf8');
+    let after;
+    if (local) {
+      const claudeFiles = [...Object.keys(files), ...result.kept].filter((r) => r.startsWith('.claude/'));
+      const hidden = [`${TOOLKIT_DIR}/`, ...claudeFiles, ...Object.values(entries).filter(Boolean)];
+      after = upsertBlock(before, excludeBlock(markers, exclude.prefix, [...new Set(hidden)]), ...markers);
+    } else {
+      after = before === null ? undefined : before.includes(markers[0]) || before.includes(markers[1]) ? removeBlock(before, ...markers) : undefined;
+    }
+    const label = toPosix(path.relative(projectDir, excludeFile));
+    if (after === null) result.blocked.push(label);
+    else if (after !== undefined && after !== before) {
+      if (!dryRun) {
+        fs.mkdirSync(path.dirname(excludeFile), { recursive: true });
+        fs.writeFileSync(excludeFile, after);
+      }
+      result.entries.push(label);
     }
   }
 
@@ -320,7 +486,7 @@ function install(projectDir, { platform, tools, force, dryRun, gitignore }, prev
   }
 
   if (!dryRun) {
-    const manifest = { version: PKG.version, platform, tools, files: sortKeys(files) };
+    const manifest = { version: PKG.version, platform, tools, local, entries, files: sortKeys(files) };
     writeFile(projectDir, MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`);
   }
   return result;
@@ -350,6 +516,13 @@ function report(result, { dryRun, verbose }) {
   if (result.kept.length) {
     log(`${prefix}${yellow('kept'.padEnd(10))} ${result.kept.length} ${dim('(no longer shipped, but edited locally — delete them yourself if unused)')}`);
     for (const rel of result.kept) log(yellow(`             ${rel}`));
+  }
+  for (const note of result.notes) log(`${prefix}${yellow('note'.padEnd(10))} ${note}`);
+  if (result.unwired.length) {
+    log(`${prefix}${yellow('not wired'.padEnd(10))} ${result.unwired.join(', ')} ${dim('(--local never edits an entry file that already exists)')}`);
+    for (const tool of result.unwired) {
+      log(dim(`             add ${ENTRY_FILES[tool].load.startsWith('@') ? `"${ENTRY_FILES[tool].load}"` : 'a pointer to .mobile-agents/AGENTS.md'} to ${ENTRY_FILES[tool].file} yourself if you want it`));
+    }
   }
   if (result.blocked.length) {
     log(`${prefix}${red('not wired'.padEnd(10))} ${result.blocked.length} ${dim('(damaged mobie block markers — left untouched)')}`);
@@ -448,6 +621,13 @@ const canPrompt = (opts) => !opts.yes && process.stdin.isTTY && process.stdout.i
 // ---------------------------------------------------------------------------
 // Commands
 
+// --local / --no-local win; otherwise keep whatever the existing install uses.
+function resolveLocal(opts, previous) {
+  const local = opts.local !== undefined ? opts.local : Boolean(previous && previous.local);
+  if (local && opts.gitignore) throw new UsageError('--local and --gitignore conflict: --local already hides everything from git.');
+  return local;
+}
+
 async function cmdInit(projectDir, opts) {
   const previous = readManifest(projectDir);
   // Re-running init keeps the existing choices; only explicit flags change them.
@@ -477,13 +657,16 @@ async function cmdInit(projectDir, opts) {
     log(`Tools: ${bold(tools.join(', '))}`);
   }
   if (previous) log(dim(`Existing install found (v${previous.version}) — updating it.`));
+  const local = resolveLocal(opts, previous);
+  if (local) log(`Mode: ${bold('local')} ${dim('(kept out of git via .git/info/exclude)')}`);
 
-  const result = install(projectDir, { ...opts, platform, tools }, previous);
+  const result = install(projectDir, { ...opts, platform, tools, local }, previous);
   report(result, opts);
   if (!opts.dryRun) {
     log('');
     log(green(`✓ mobie v${PKG.version} installed in ${TOOLKIT_DIR}/`));
-    log(`Commit ${TOOLKIT_DIR}/ and .claude/ so teammates get the same setup.`);
+    if (local) log('Git ignores everything mobie added, on this machine only — nothing to commit.');
+    else log(`Commit ${TOOLKIT_DIR}/ and .claude/ so teammates get the same setup.`);
     log(`Start a session and look for: ${bold('Mobile Engineering Agents — loaded ✓')}`);
   }
 }
@@ -493,10 +676,11 @@ function cmdUpdate(projectDir, opts) {
   if (!previous) throw new UsageError(`No ${MANIFEST} found. Run \`${NPX} init\` first.`);
   const platform = opts.platform || previous.platform;
   const tools = opts.tools || previous.tools;
-  log(`Updating v${previous.version} → v${PKG.version} (platform: ${bold(platform)}, tools: ${bold(tools.join(', '))})`);
+  const local = resolveLocal(opts, previous);
+  log(`Updating v${previous.version} → v${PKG.version} (platform: ${bold(platform)}, tools: ${bold(tools.join(', '))}${local ? ', local' : ''})`);
   if (PKG.version === previous.version) log(dim(`Same version — tip: run \`${NPX_LATEST} update\` for the newest release.`));
 
-  const result = install(projectDir, { ...opts, platform, tools }, previous);
+  const result = install(projectDir, { ...opts, platform, tools, local }, previous);
   report(result, opts);
   if (!opts.dryRun) log(green(`\n✓ Up to date with mobie v${PKG.version}`));
 }
@@ -529,8 +713,13 @@ function cmdDoctor(projectDir) {
   else ok(`${total} toolkit files present`);
   if (modified.length) warn(`${modified.length} file(s) edited locally (update will leave them alone): ${modified.join(', ')}`);
 
+  const entries = manifest.entries || previousEntries(manifest);
   for (const tool of manifest.tools) {
-    const { file } = ENTRY_FILES[tool];
+    const file = entries[tool];
+    if (!file) {
+      warn(`${tool}: not wired — ${ENTRY_FILES[tool].file} already existed, and --local doesn't edit it`);
+      continue;
+    }
     const content = readIfExists(path.join(projectDir, file));
     const text = content ? content.toString('utf8') : '';
     const markers = [countOf(text, BLOCK_START), countOf(text, BLOCK_END)];
@@ -554,7 +743,16 @@ function cmdDoctor(projectDir) {
 
     const ignore = readIfExists(path.join(projectDir, '.gitignore'));
     const ignored = ignore && ignore.toString('utf8').split(/\r?\n/).some((l) => l.trim().replace(/\/$/, '') === TOOLKIT_DIR);
-    if (ignored) warn(`${TOOLKIT_DIR}/ is gitignored — teammates' .claude/ subagents will point at missing files`);
+    if (ignored && !manifest.local) warn(`${TOOLKIT_DIR}/ is gitignored — teammates' .claude/ subagents will point at missing files`);
+  }
+
+  if (manifest.local && !gitExclude(projectDir)) {
+    warn('local install, but git could not be run here to check that everything is ignored');
+  } else if (manifest.local) {
+    const visible = [`${TOOLKIT_DIR}/AGENTS.md`, ...Object.keys(manifest.files).filter((r) => r.startsWith('.claude/')), ...Object.values(entries).filter(Boolean)]
+      .filter((rel) => fs.existsSync(path.join(projectDir, rel)) && !isGitIgnored(projectDir, rel));
+    if (visible.length) fail(`local install, but git can see: ${visible.join(', ')} — run \`${NPX} update\` (tracked files need \`git rm --cached\`)`);
+    else ok('local install: git ignores everything mobie added');
   }
 
   log('');
@@ -582,6 +780,9 @@ Options
   --dir <path>        project directory (default: current directory)
   --force             overwrite files you edited locally (never deletes them)
   --dry-run           show what would change without writing anything
+  --local             keep the install out of git on this machine only (.git/info/exclude);
+                      never edits tracked files — Claude Code uses CLAUDE.local.md
+  --no-local          switch a local install back to a shared, committable one
   --gitignore         add ${TOOLKIT_DIR}/ to .gitignore (not recommended for teams)
   --verbose           list every file
   -v, --version       print the version
@@ -606,6 +807,8 @@ function parseArgs(argv) {
       case '--force': opts.force = true; break;
       case '--dry-run': opts.dryRun = true; break;
       case '--gitignore': opts.gitignore = true; break;
+      case '--local': opts.local = true; break;
+      case '--no-local': opts.local = false; break;
       case '--verbose': opts.verbose = true; break;
       case '-y': case '--yes': opts.yes = true; break;
       case '--dir': {

@@ -254,3 +254,176 @@ test('--tool accepts gpt/openai/chatgpt as aliases for codex', () => {
   assert.deepEqual(manifest(dir).tools, ['claude', 'codex']);
   assert.match(read(dir, 'AGENTS.md'), /\.mobile-agents\/AGENTS\.md/);
 });
+
+// --- --local -----------------------------------------------------------------
+
+function gitRepo(markers = ['Package.swift']) {
+  const dir = project(markers);
+  const run = (...args) => spawnSync('git', ['-c', 'user.email=t@example.com', '-c', 'user.name=t', ...args], { cwd: dir, encoding: 'utf8' });
+  run('init', '-q');
+  run('add', '-A');
+  run('commit', '-q', '-m', 'init');
+  return { dir, run, status: () => run('status', '--porcelain', '--untracked-files=all').stdout.trim() };
+}
+
+test('--local hides everything mobie adds from git, on this clone only', () => {
+  const { dir, status } = gitRepo();
+  const { code, out } = mobie(dir, 'init', '--local', '--yes');
+  assert.equal(code, 0, out);
+  assert.equal(status(), '', 'git sees no changes');
+  assert.ok(!exists(dir, '.gitignore'), 'shared .gitignore untouched');
+  assert.match(read(dir, '.git/info/exclude'), /^\/\.mobile-agents\/$/m);
+  assert.match(read(dir, 'CLAUDE.local.md'), /@\.mobile-agents\/CLAUDE\.md/);
+  assert.ok(!exists(dir, 'CLAUDE.md'), 'never creates a CLAUDE.md that a pull could overwrite');
+  assert.equal(manifest(dir).local, true);
+  const doctor = mobie(dir, 'doctor');
+  assert.equal(doctor.code, 0, doctor.out);
+  assert.match(doctor.out, /git ignores everything mobie added/);
+
+  const again = mobie(dir, 'update');
+  assert.match(again.out, /local/, 'update keeps local mode');
+  assert.equal(status(), '');
+});
+
+test('--local never edits a tracked entry file: Claude uses CLAUDE.local.md', () => {
+  const { dir, run, status } = gitRepo();
+  fs.writeFileSync(path.join(dir, 'CLAUDE.md'), '# Team rules\n');
+  run('add', 'CLAUDE.md');
+  run('commit', '-q', '-m', 'team rules');
+
+  assert.equal(mobie(dir, 'init', '--local', '--yes').code, 0);
+  assert.equal(read(dir, 'CLAUDE.md'), '# Team rules\n');
+  assert.match(read(dir, 'CLAUDE.local.md'), /@\.mobile-agents\/CLAUDE\.md/);
+  assert.equal(status(), '');
+  assert.equal(mobie(dir, 'doctor').code, 0);
+});
+
+test('--local leaves tools without a personal entry file unwired', () => {
+  const { dir, run, status } = gitRepo();
+  fs.writeFileSync(path.join(dir, '.cursorrules'), 'team cursor rules\n');
+  run('add', '.cursorrules');
+  run('commit', '-q', '-m', 'cursor');
+
+  const { code, out } = mobie(dir, 'init', '--local', '--tool', 'claude,cursor');
+  assert.equal(code, 0, out);
+  assert.match(out, /not wired\s+cursor/);
+  assert.equal(read(dir, '.cursorrules'), 'team cursor rules\n');
+  assert.equal(status(), '');
+  const doctor = mobie(dir, 'doctor');
+  assert.equal(doctor.code, 0);
+  assert.match(doctor.out, /cursor: not wired/);
+});
+
+test('--local only hides mobie files, not the user\'s own .claude files', () => {
+  const { dir, status } = gitRepo();
+  mobie(dir, 'init', '--local', '--yes');
+  fs.writeFileSync(path.join(dir, '.claude', 'settings.json'), '{}\n');
+  assert.equal(status(), '?? .claude/settings.json');
+});
+
+test('--local works when the project is a subfolder of the repo', () => {
+  const { dir, status } = gitRepo([]);
+  const app = path.join(dir, 'ios-app');
+  fs.mkdirSync(app);
+  fs.writeFileSync(path.join(app, 'Package.swift'), '');
+  assert.equal(mobie(app, 'init', '--local', '--yes').code, 0);
+  assert.match(read(dir, '.git/info/exclude'), /^\/ios-app\/\.mobile-agents\/$/m);
+  assert.equal(status(), '?? ios-app/Package.swift');
+});
+
+test('--no-local turns a local install back into a shared one', () => {
+  const { dir, status } = gitRepo();
+  mobie(dir, 'init', '--local', '--yes');
+  assert.equal(mobie(dir, 'update', '--no-local').code, 0);
+  assert.doesNotMatch(read(dir, '.git/info/exclude'), /mobie:start/);
+  assert.match(status(), /\?\? \.mobile-agents\//);
+  assert.equal(manifest(dir).local, false);
+  assert.equal(mobie(dir, 'doctor').code, 0);
+});
+
+test('switching to --local never edits a tracked CLAUDE.md', () => {
+  const { dir, run } = gitRepo();
+  fs.writeFileSync(path.join(dir, 'CLAUDE.md'), '# Team rules\n');
+  run('add', 'CLAUDE.md');
+  run('commit', '-q', '-m', 'team rules');
+  mobie(dir, 'init', '--yes');
+  const shared = read(dir, 'CLAUDE.md');
+
+  const { code, out } = mobie(dir, 'update', '--local');
+  assert.equal(code, 0, out);
+  assert.match(out, /CLAUDE\.md is committed to git/);
+  assert.equal(read(dir, 'CLAUDE.md'), shared, 'tracked file left alone');
+  assert.match(read(dir, 'CLAUDE.local.md'), /mobie:start/);
+});
+
+test('--local needs git and conflicts with --gitignore', () => {
+  const dir = project(['Package.swift']);
+  const noGit = mobie(dir, 'init', '--local', '--yes');
+  assert.equal(noGit.code, 2);
+  assert.match(noGit.out, /needs a git repository/);
+  assert.deepEqual(fs.readdirSync(dir), ['Package.swift'], 'nothing written');
+
+  const { dir: repo } = gitRepo();
+  assert.equal(mobie(repo, 'init', '--local', '--gitignore', '--yes').code, 2);
+});
+
+test('switching to --local moves a mobie-created CLAUDE.md to CLAUDE.local.md', () => {
+  const { dir, status } = gitRepo();
+  mobie(dir, 'init', '--yes');
+  assert.equal(mobie(dir, 'update', '--local').code, 0);
+  assert.ok(!exists(dir, 'CLAUDE.md'), 'mobie-only file is removed');
+  assert.match(read(dir, 'CLAUDE.local.md'), /mobie:start/);
+  assert.equal(status(), '');
+});
+
+test('two local installs in one repo keep their own exclude blocks', () => {
+  const { dir, status } = gitRepo([]);
+  for (const [sub, marker] of [['ios', 'Package.swift'], ['flutter', 'pubspec.yaml']]) {
+    fs.mkdirSync(path.join(dir, sub));
+    fs.writeFileSync(path.join(dir, sub, marker), '');
+  }
+  mobie(path.join(dir, 'ios'), 'init', '--local', '--yes');
+  mobie(path.join(dir, 'flutter'), 'init', '--local', '--yes');
+  assert.equal(status(), '?? flutter/pubspec.yaml\n?? ios/Package.swift');
+  assert.equal(mobie(path.join(dir, 'ios'), 'doctor').code, 0);
+
+  mobie(path.join(dir, 'flutter'), 'update', '--no-local');
+  assert.match(status(), /flutter\/\.mobile-agents/);
+  assert.doesNotMatch(status(), /ios\/\.mobile-agents/, 'the other install stays hidden');
+});
+
+test('--local never writes into an entry file a teammate committed later', () => {
+  const { dir, run, status } = gitRepo();
+  mobie(dir, 'init', '--local', '--tool', 'claude,codex');
+  assert.match(read(dir, 'AGENTS.md'), /mobie:start/);
+
+  // A teammate commits AGENTS.md; our ignored copy is replaced by theirs.
+  fs.writeFileSync(path.join(dir, 'AGENTS.md'), 'team agents\n');
+  run('add', '-f', 'AGENTS.md');
+  run('commit', '-q', '-m', 'team agents');
+
+  const { out } = mobie(dir, 'update');
+  assert.match(out, /not wired\s+codex/);
+  assert.equal(read(dir, 'AGENTS.md'), 'team agents\n');
+  assert.equal(status(), '');
+});
+
+test('--local refuses while the install itself is committed', () => {
+  const { dir, run } = gitRepo();
+  mobie(dir, 'init', '--yes');
+  run('add', '-A');
+  run('commit', '-q', '-m', 'shared install');
+  const { code, out } = mobie(dir, 'update', '--local');
+  assert.equal(code, 2);
+  assert.match(out, /git rm -r --cached/);
+  assert.equal(manifest(dir).local, false, 'nothing changed');
+});
+
+test('--local escapes glob characters in the project path', () => {
+  const { dir, status } = gitRepo([]);
+  const app = path.join(dir, 'app[1]');
+  fs.mkdirSync(app);
+  fs.writeFileSync(path.join(app, 'Package.swift'), '');
+  assert.equal(mobie(app, 'init', '--local', '--yes').code, 0);
+  assert.equal(status(), '?? app[1]/Package.swift');
+});

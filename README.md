@@ -74,13 +74,26 @@ Then it:
 - adds a small marked block to each tool's entry file (`CLAUDE.md`, `.cursorrules`,
   `.windsurfrules`, `AGENTS.md`, `GEMINI.md`). Your existing content is left as it is.
 
-Commit `.mobile-agents/` and `.claude/` so your whole team gets the same setup.
+Commit `.mobile-agents/` and `.claude/` so your whole team gets the same setup — or keep it to
+yourself with `--local`:
+
+```bash
+npx @sok_pich/mobie init --local
+```
+
+`--local` hides everything mobie adds from git through `.git/info/exclude`, which is never
+committed, so only your clone is affected and the team's `.gitignore` stays untouched. It never
+edits a file git tracks: Claude Code's block goes in your personal `CLAUDE.local.md`, and other
+tools are wired only when their entry file doesn't exist yet (otherwise mobie tells you what to add).
+If the install is already committed, untrack it first — mobie prints the `git rm --cached` command.
+`update` remembers the mode, and `--no-local` switches back to a shared install.
 
 | Option | Use it to |
 |--------|-----------|
 | `--platform ios\|flutter\|android\|react_native\|all` | override platform detection |
 | `--tool claude,codex,gemini,cursor,windsurf` (or `all`) | skip the question and choose the tools directly. `gpt`, `openai` and `chatgpt` also mean `codex` |
 | `--yes` | skip the question and use the detected tools (also what happens in CI or a non-interactive shell) |
+| `--local` / `--no-local` | keep the install out of git on this machine only / switch back to shared |
 | `--dry-run` | preview the changes without writing anything |
 
 ### 2. Describe what you want
