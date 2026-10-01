@@ -11,9 +11,10 @@ const { execFileSync } = require('node:child_process');
 const PKG_ROOT = path.resolve(__dirname, '..');
 const PKG = require('../package.json');
 
-// What users type to run us, e.g. `npx @sok_pich/mobie init`.
-const NPX = `npx ${PKG.name}`;
-const NPX_LATEST = `npx ${PKG.name}@latest`;
+// What users type to run us: `mobie` when installed by Homebrew, else `npx @sok_pich/mobie`.
+const VIA_BREW = __dirname.includes(`${path.sep}Cellar${path.sep}`);
+const RUN = VIA_BREW ? 'mobie' : `npx ${PKG.name}`;
+const RUN_LATEST = VIA_BREW ? 'brew upgrade mobie && mobie' : `npx ${PKG.name}@latest`;
 
 const TOOLKIT_DIR = '.mobile-agents';
 const MANIFEST = `${TOOLKIT_DIR}/.mobie-manifest.json`;
@@ -205,7 +206,7 @@ function buildPlan({ platform, tools }) {
 
 function entryBlock(tool, platform) {
   return [
-    `${BLOCK_START} — managed by mobie (\`${NPX}\`); edits inside this block are overwritten -->`,
+    `${BLOCK_START} — managed by mobie; edits inside this block are overwritten -->`,
     ENTRY_FILES[tool].load,
     '',
     `The Mobile Engineering Agents toolkit is installed in \`${TOOLKIT_DIR}/\` (platform: ${platform}).`,
@@ -322,7 +323,7 @@ const previousEntries = (previous) =>
 function readManifest(projectDir) {
   const raw = readIfExists(path.join(projectDir, MANIFEST));
   if (!raw) return null;
-  const invalid = (why) => new UsageError(`${MANIFEST} is invalid (${why}). Fix it or delete it and run \`${NPX} init\`.`);
+  const invalid = (why) => new UsageError(`${MANIFEST} is invalid (${why}). Fix it or delete it and run \`${RUN} init\`.`);
   let manifest;
   try {
     manifest = JSON.parse(raw.toString('utf8'));
@@ -527,7 +528,7 @@ function report(result, { dryRun, verbose }) {
   if (result.blocked.length) {
     log(`${prefix}${red('not wired'.padEnd(10))} ${result.blocked.length} ${dim('(damaged mobie block markers — left untouched)')}`);
     for (const rel of result.blocked) log(red(`             ${rel}`));
-    log(dim(`Fix the ${BLOCK_START} … ${BLOCK_END} markers by hand (one of each), then run \`${NPX} update\`.`));
+    log(dim(`Fix the ${BLOCK_START} … ${BLOCK_END} markers by hand (one of each), then run \`${RUN} update\`.`));
   }
 }
 
@@ -673,12 +674,12 @@ async function cmdInit(projectDir, opts) {
 
 function cmdUpdate(projectDir, opts) {
   const previous = readManifest(projectDir);
-  if (!previous) throw new UsageError(`No ${MANIFEST} found. Run \`${NPX} init\` first.`);
+  if (!previous) throw new UsageError(`No ${MANIFEST} found. Run \`${RUN} init\` first.`);
   const platform = opts.platform || previous.platform;
   const tools = opts.tools || previous.tools;
   const local = resolveLocal(opts, previous);
   log(`Updating v${previous.version} → v${PKG.version} (platform: ${bold(platform)}, tools: ${bold(tools.join(', '))}${local ? ', local' : ''})`);
-  if (PKG.version === previous.version) log(dim(`Same version — tip: run \`${NPX_LATEST} update\` for the newest release.`));
+  if (PKG.version === previous.version) log(dim(`Same version — tip: run \`${RUN_LATEST} update\` for the newest release.`));
 
   const result = install(projectDir, { ...opts, platform, tools, local }, previous);
   report(result, opts);
@@ -695,11 +696,11 @@ function cmdDoctor(projectDir) {
   log(bold('mobie doctor'));
   const manifest = readManifest(projectDir);
   if (!manifest) {
-    fail(`${MANIFEST} not found — run \`${NPX} init\``);
+    fail(`${MANIFEST} not found — run \`${RUN} init\``);
     return 1;
   }
   ok(`installed v${manifest.version} (platform: ${manifest.platform}, tools: ${manifest.tools.join(', ')})`);
-  if (manifest.version !== PKG.version) warn(`this CLI is v${PKG.version} — run \`${NPX_LATEST} update\``);
+  if (manifest.version !== PKG.version) warn(`this CLI is v${PKG.version} — run \`${RUN_LATEST} update\``);
 
   let missing = 0;
   const modified = [];
@@ -709,7 +710,7 @@ function cmdDoctor(projectDir) {
     else if (sha256(current) !== hash) modified.push(rel);
   }
   const total = Object.keys(manifest.files).length;
-  if (missing) fail(`${missing} of ${total} toolkit files are missing — run \`${NPX} update\``);
+  if (missing) fail(`${missing} of ${total} toolkit files are missing — run \`${RUN} update\``);
   else ok(`${total} toolkit files present`);
   if (modified.length) warn(`${modified.length} file(s) edited locally (update will leave them alone): ${modified.join(', ')}`);
 
@@ -725,7 +726,7 @@ function cmdDoctor(projectDir) {
     const markers = [countOf(text, BLOCK_START), countOf(text, BLOCK_END)];
     if (markers[0] === 1 && markers[1] === 1 && text.indexOf(BLOCK_START) < text.indexOf(BLOCK_END)) ok(`${tool}: ${file} loads the toolkit`);
     else if (markers[0] || markers[1]) fail(`${tool}: ${file} has damaged mobie markers — keep exactly one start and one end`);
-    else fail(`${tool}: ${file} has no mobie block — run \`${NPX} update\``);
+    else fail(`${tool}: ${file} has no mobie block — run \`${RUN} update\``);
   }
 
   if (manifest.tools.includes('claude')) {
@@ -751,7 +752,7 @@ function cmdDoctor(projectDir) {
   } else if (manifest.local) {
     const visible = [`${TOOLKIT_DIR}/AGENTS.md`, ...Object.keys(manifest.files).filter((r) => r.startsWith('.claude/')), ...Object.values(entries).filter(Boolean)]
       .filter((rel) => fs.existsSync(path.join(projectDir, rel)) && !isGitIgnored(projectDir, rel));
-    if (visible.length) fail(`local install, but git can see: ${visible.join(', ')} — run \`${NPX} update\` (tracked files need \`git rm --cached\`)`);
+    if (visible.length) fail(`local install, but git can see: ${visible.join(', ')} — run \`${RUN} update\` (tracked files need \`git rm --cached\`)`);
     else ok('local install: git ignores everything mobie added');
   }
 
@@ -767,9 +768,9 @@ function cmdDoctor(projectDir) {
 const HELP = `${bold('mobie')} v${PKG.version} — Mobile Engineering Agents for your AI coding tool
 
 Usage
-  ${NPX} init      Install the toolkit into the current project
-  ${NPX} update    Update an existing install, keeping your local edits
-  ${NPX} doctor    Check that the install is wired up correctly
+  ${RUN} init      Install the toolkit into the current project
+  ${RUN} update    Update an existing install, keeping your local edits
+  ${RUN} doctor    Check that the install is wired up correctly
 
 Options
   --platform <p>      ${PLATFORMS.join(' | ')} | all   (default: detected, else ios)
@@ -851,7 +852,7 @@ async function main(argv) {
     case 'init': return await cmdInit(opts.dir, opts), 0;
     case 'update': return cmdUpdate(opts.dir, opts), 0;
     case 'doctor': return cmdDoctor(opts.dir);
-    default: throw new UsageError(`Unknown command "${opts.command}". Run \`${NPX} --help\`.`);
+    default: throw new UsageError(`Unknown command "${opts.command}". Run \`${RUN} --help\`.`);
   }
 }
 
