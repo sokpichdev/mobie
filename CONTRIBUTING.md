@@ -220,8 +220,21 @@ Run `git config commit.template .gitmessage` to prefill the format in your edito
 
 ## Releasing to npm
 
+Releases use npm trusted publishing (no stored token) and staged publishing: CI can only
+stage a version, and a maintainer makes it public with 2FA.
+
 1. Bump `version` in `package.json` (semver) and merge to `main`.
 2. Tag the merge commit: `git tag v1.2.3 && git push origin v1.2.3`.
 3. The [`npm package`](.github/workflows/npm.yml) workflow runs the tests and the `npx` smoke
-   test, checks that the tag matches `package.json`, and publishes with provenance. It needs an
-   `NPM_TOKEN` repository secret.
+   test, checks that the tag matches `package.json`, and stages the version with provenance.
+4. Approve it (prompts for 2FA). Inspect first with `npm stage view` / `npm stage download`, or
+   discard it with `npm stage reject`:
+
+   ```bash
+   npm stage list @sok_pich/mobie
+   npm stage approve <stage-id>
+   ```
+
+The trusted publisher on npmjs.com is configured for `sokpichdev/mobie`, workflow `npm.yml`,
+environment `npm`. Renaming the workflow file or the environment breaks publishing until the npm
+settings are updated to match.

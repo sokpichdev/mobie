@@ -40,23 +40,27 @@ jobs:
           npx --yes --package "$TARBALL" mobie update
 
   publish:
-    name: Publish to npm
+    name: Stage release on npm
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [test, smoke]
     runs-on: ubuntu-latest
+    # Must match the environment in the npm trusted-publisher settings for @sok_pich/mobie.
+    environment: npm
     permissions:
       contents: read
-      id-token: write # npm provenance
+      id-token: write # OIDC for trusted publishing and provenance — no npm token is stored
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           registry-url: "https://registry.npmjs.org"
+      - name: Install an npm with trusted publishing and `npm stage`
+        run: npm install -g npm@latest
       - name: Check tag matches package.json version
         run: |
           [ "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")" ] \
             || { echo "Tag $GITHUB_REF_NAME does not match package.json version"; exit 1; }
-      - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Stages the version only. A maintainer makes it public with 2FA:
+      #   npm stage list @sok_pich/mobie && npm stage approve <stage-id>
+      - run: npm stage publish --provenance --access public
