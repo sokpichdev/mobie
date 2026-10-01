@@ -1,5 +1,5 @@
 {
-  "name": "mobie",
+  "name": "@sok_pich/mobie",
   "version": "1.0.0",
   "description": "An AI-first engineering toolkit that turns coding agents into Senior/Staff mobile engineers.",
   "keywords": [
@@ -19,7 +19,7 @@
   "homepage": "https://github.com/sokpichdev/mobie",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sokpichdev/mobie.git"
+    "url": "git+https://github.com/sokpichdev/mobie.git"
   },
   "bin": {
     "mobie": "bin/mobie.js"

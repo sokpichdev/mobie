@@ -141,7 +141,7 @@ test('doctor and update fail clearly without an install', () => {
   assert.equal(mobie(dir, 'doctor').code, 1);
   const res = mobie(dir, 'update');
   assert.equal(res.code, 2);
-  assert.match(res.out, /npx mobie init/);
+  assert.match(res.out, /npx @sok_pich\/mobie init/);
 });
 
 test('rejects unknown options', () => {

@@ -102,7 +102,7 @@ never load two conflicting copies.
 
 ## Local Setup
 
-The toolkit is markdown + illustrative Swift, plus the zero-dependency `npx mobie` installer
+The toolkit is markdown + illustrative Swift, plus the zero-dependency `npx @sok_pich/mobie` installer
 in [`bin/mobie.js`](bin/mobie.js):
 
 ```bash
@@ -212,11 +212,11 @@ Run `git config commit.template .gitmessage` to prefill the format in your edito
 3. Add an entry to the directory `README.md` and, for agents, to the table in
    [`README.md`](README.md) and routing in [`AGENTS.md`](AGENTS.md).
 4. If a new `.claude/agents/` subagent is platform-specific (only iOS, or only Flutter), add it to
-   `PLATFORM_AGENTS` in [`bin/mobie.js`](bin/mobie.js) so `npx mobie init` installs it only for
+   `PLATFORM_AGENTS` in [`bin/mobie.js`](bin/mobie.js) so `npx @sok_pich/mobie init` installs it only for
    that platform. A new top-level content folder must also be added to `CONTENT_DIRS` there and
    to `files` in `package.json`.
    A shared subagent must not name a platform-specific path such as `skills/<topic>/flutter/…`:
-   that path isn't installed for other platforms, and `npx mobie doctor` reports it as broken.
+   that path isn't installed for other platforms, and `npx @sok_pich/mobie doctor` reports it as broken.
 
 ## Releasing to npm
 

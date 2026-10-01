@@ -20,8 +20,8 @@ Confirm that the toolkit has been properly initialized and all critical files an
 ## Step-by-Step Process
 
 0. **Check for an npx install first** — if `.mobile-agents/.mobie-manifest.json` exists, the
-   toolkit was installed with `npx mobie` and holds only the installed platform's skills and
-   templates. Run `npx mobie doctor` from the project root, report its output, and stop here.
+   toolkit was installed with `npx @sok_pich/mobie` and holds only the installed platform's skills and
+   templates. Run `npx @sok_pich/mobie doctor` from the project root, report its output, and stop here.
    The count thresholds below apply only to a full clone.
 
 1. **Check entry point files exist** — verify these files are present at the repo root:

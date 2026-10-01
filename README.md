@@ -49,7 +49,7 @@ Get running in two steps. All you need is Node.js 18+. The everyday workflow nee
 
 ```bash
 cd your-project
-npx mobie init
+npx @sok_pich/mobie init
 ```
 
 `init` detects your platform (`Package.swift` / `*.xcodeproj` → iOS, `pubspec.yaml` → Flutter, …)
@@ -102,9 +102,9 @@ right experts and scales its process to the task. Head to
 ### Confirm & keep updated
 
 - **Quick check:** start a session — the `loaded ✓` line should head the reply.
-- **Deterministic check:** `npx mobie doctor` checks that the install is complete, that every
+- **Deterministic check:** `npx @sok_pich/mobie doctor` checks that the install is complete, that every
   entry file loads the toolkit, and that the Claude subagents resolve into `.mobile-agents/`.
-- **Update:** `npx mobie@latest update`. Files you edited locally are left alone and listed in
+- **Update:** `npx @sok_pich/mobie@latest update`. Files you edited locally are left alone and listed in
   the output; add `--force` to overwrite them with the toolkit version.
 
 <details>
@@ -119,7 +119,7 @@ echo "@.mobile-agents/.windsurfrules" > .windsurfrules   # Windsurf
 ```
 
 Claude Code only discovers subagents and slash commands in the project-root `.claude/`, so a
-plain clone doesn't get them — use `npx mobie init` if you want those. Update with
+plain clone doesn't get them — use `npx @sok_pich/mobie init` if you want those. Update with
 `cd .mobile-agents && git pull`.
 
 </details>

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // mobie — install the Mobile Engineering Agents toolkit into a project.
-// Zero dependencies on purpose: `npx mobie` should start fast and pull in nothing else.
+// Zero dependencies on purpose: `npx @sok_pich/mobie` should start fast and pull in nothing else.
 'use strict';
 
 const fs = require('node:fs');
@@ -9,6 +9,10 @@ const crypto = require('node:crypto');
 
 const PKG_ROOT = path.resolve(__dirname, '..');
 const PKG = require('../package.json');
+
+// What users type to run us, e.g. `npx @sok_pich/mobie init`.
+const NPX = `npx ${PKG.name}`;
+const NPX_LATEST = `npx ${PKG.name}@latest`;
 
 const TOOLKIT_DIR = '.mobile-agents';
 const MANIFEST = `${TOOLKIT_DIR}/.mobie-manifest.json`;
@@ -193,7 +197,7 @@ function buildPlan({ platform, tools }) {
 
 function entryBlock(tool, platform) {
   return [
-    `${BLOCK_START} — managed by \`npx mobie\`; edits inside this block are overwritten -->`,
+    `${BLOCK_START} — managed by mobie (\`${NPX}\`); edits inside this block are overwritten -->`,
     ENTRY_FILES[tool].load,
     '',
     `The Mobile Engineering Agents toolkit is installed in \`${TOOLKIT_DIR}/\` (platform: ${platform}).`,
@@ -225,7 +229,7 @@ function upsertBlock(existing, block) {
 function readManifest(projectDir) {
   const raw = readIfExists(path.join(projectDir, MANIFEST));
   if (!raw) return null;
-  const invalid = (why) => new UsageError(`${MANIFEST} is invalid (${why}). Fix it or delete it and run \`npx mobie init\`.`);
+  const invalid = (why) => new UsageError(`${MANIFEST} is invalid (${why}). Fix it or delete it and run \`${NPX} init\`.`);
   let manifest;
   try {
     manifest = JSON.parse(raw.toString('utf8'));
@@ -350,7 +354,7 @@ function report(result, { dryRun, verbose }) {
   if (result.blocked.length) {
     log(`${prefix}${red('not wired'.padEnd(10))} ${result.blocked.length} ${dim('(damaged mobie block markers — left untouched)')}`);
     for (const rel of result.blocked) log(red(`             ${rel}`));
-    log(dim(`Fix the ${BLOCK_START} … ${BLOCK_END} markers by hand (one of each), then run \`npx mobie update\`.`));
+    log(dim(`Fix the ${BLOCK_START} … ${BLOCK_END} markers by hand (one of each), then run \`${NPX} update\`.`));
   }
 }
 
@@ -486,11 +490,11 @@ async function cmdInit(projectDir, opts) {
 
 function cmdUpdate(projectDir, opts) {
   const previous = readManifest(projectDir);
-  if (!previous) throw new UsageError(`No ${MANIFEST} found. Run \`npx mobie init\` first.`);
+  if (!previous) throw new UsageError(`No ${MANIFEST} found. Run \`${NPX} init\` first.`);
   const platform = opts.platform || previous.platform;
   const tools = opts.tools || previous.tools;
   log(`Updating v${previous.version} → v${PKG.version} (platform: ${bold(platform)}, tools: ${bold(tools.join(', '))})`);
-  if (PKG.version === previous.version) log(dim('Same version — tip: run `npx mobie@latest update` for the newest release.'));
+  if (PKG.version === previous.version) log(dim(`Same version — tip: run \`${NPX_LATEST} update\` for the newest release.`));
 
   const result = install(projectDir, { ...opts, platform, tools }, previous);
   report(result, opts);
@@ -507,11 +511,11 @@ function cmdDoctor(projectDir) {
   log(bold('mobie doctor'));
   const manifest = readManifest(projectDir);
   if (!manifest) {
-    fail(`${MANIFEST} not found — run \`npx mobie init\``);
+    fail(`${MANIFEST} not found — run \`${NPX} init\``);
     return 1;
   }
   ok(`installed v${manifest.version} (platform: ${manifest.platform}, tools: ${manifest.tools.join(', ')})`);
-  if (manifest.version !== PKG.version) warn(`this CLI is v${PKG.version} — run \`npx mobie@latest update\``);
+  if (manifest.version !== PKG.version) warn(`this CLI is v${PKG.version} — run \`${NPX_LATEST} update\``);
 
   let missing = 0;
   const modified = [];
@@ -521,7 +525,7 @@ function cmdDoctor(projectDir) {
     else if (sha256(current) !== hash) modified.push(rel);
   }
   const total = Object.keys(manifest.files).length;
-  if (missing) fail(`${missing} of ${total} toolkit files are missing — run \`npx mobie update\``);
+  if (missing) fail(`${missing} of ${total} toolkit files are missing — run \`${NPX} update\``);
   else ok(`${total} toolkit files present`);
   if (modified.length) warn(`${modified.length} file(s) edited locally (update will leave them alone): ${modified.join(', ')}`);
 
@@ -532,7 +536,7 @@ function cmdDoctor(projectDir) {
     const markers = [countOf(text, BLOCK_START), countOf(text, BLOCK_END)];
     if (markers[0] === 1 && markers[1] === 1 && text.indexOf(BLOCK_START) < text.indexOf(BLOCK_END)) ok(`${tool}: ${file} loads the toolkit`);
     else if (markers[0] || markers[1]) fail(`${tool}: ${file} has damaged mobie markers — keep exactly one start and one end`);
-    else fail(`${tool}: ${file} has no mobie block — run \`npx mobie update\``);
+    else fail(`${tool}: ${file} has no mobie block — run \`${NPX} update\``);
   }
 
   if (manifest.tools.includes('claude')) {
@@ -565,9 +569,9 @@ function cmdDoctor(projectDir) {
 const HELP = `${bold('mobie')} v${PKG.version} — Mobile Engineering Agents for your AI coding tool
 
 Usage
-  npx mobie init      Install the toolkit into the current project
-  npx mobie update    Update an existing install, keeping your local edits
-  npx mobie doctor    Check that the install is wired up correctly
+  ${NPX} init      Install the toolkit into the current project
+  ${NPX} update    Update an existing install, keeping your local edits
+  ${NPX} doctor    Check that the install is wired up correctly
 
 Options
   --platform <p>      ${PLATFORMS.join(' | ')} | all   (default: detected, else ios)
@@ -644,7 +648,7 @@ async function main(argv) {
     case 'init': return await cmdInit(opts.dir, opts), 0;
     case 'update': return cmdUpdate(opts.dir, opts), 0;
     case 'doctor': return cmdDoctor(opts.dir);
-    default: throw new UsageError(`Unknown command "${opts.command}". Run \`npx mobie --help\`.`);
+    default: throw new UsageError(`Unknown command "${opts.command}". Run \`${NPX} --help\`.`);
   }
 }
 
