@@ -1,14 +1,50 @@
 {
-  "name": "mobie",
+  "name": "@sok_pich/mobie",
   "version": "1.0.0",
-  "private": true,
   "description": "An AI-first engineering toolkit that turns coding agents into Senior/Staff mobile engineers.",
+  "keywords": [
+    "ai",
+    "agents",
+    "claude-code",
+    "cursor",
+    "ios",
+    "swift",
+    "swiftui",
+    "flutter",
+    "mobile",
+    "code-review"
+  ],
   "license": "MIT",
   "author": "Sok Pich",
   "homepage": "https://github.com/sokpichdev/mobie",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sokpichdev/mobie.git"
+    "url": "git+https://github.com/sokpichdev/mobie.git"
+  },
+  "bin": {
+    "mobie": "bin/mobie.js"
+  },
+  "files": [
+    "bin/",
+    "agents/",
+    "skills/",
+    "standards/",
+    "workflows/",
+    "templates/",
+    "checklists/",
+    "architecture/",
+    "prompts/",
+    ".claude/agents/",
+    ".claude/commands/",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "GEMINI.md",
+    "GLOSSARY.md",
+    ".cursorrules",
+    ".windsurfrules"
+  ],
+  "engines": {
+    "node": ">=18"
   },
   "scripts": {
     "lint": "npm run lint:md && npm run lint:links",
@@ -17,7 +53,9 @@
     "lint:links": "markdown-link-check --quiet --config .github/mlc_config.json $(find . -name '*.md' -not -path './node_modules/*')",
     "lint:commits": "commitlint --from origin/main --to HEAD --verbose",
     "commitlint": "commitlint --edit",
-    "verify": "bash verify.sh"
+    "verify": "bash verify.sh",
+    "test": "node --test",
+    "prepublishOnly": "npm test"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",

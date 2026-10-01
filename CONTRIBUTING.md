@@ -102,10 +102,12 @@ never load two conflicting copies.
 
 ## Local Setup
 
-The toolkit is markdown + illustrative Swift, so the only tooling is for docs validation:
+The toolkit is markdown + illustrative Swift, plus the zero-dependency `npx @sok_pich/mobie` installer
+in [`bin/mobie.js`](bin/mobie.js):
 
 ```bash
 npm install                 # installs markdownlint, link-check, commitlint
+npm test                    # installer tests (node:test, no dependencies)
 npm run lint                # markdown lint + relative/external link check
 npm run lint:md:fix         # auto-fix common markdown issues
 git config commit.template .gitmessage   # (optional) prefill the commit format
@@ -209,3 +211,30 @@ Run `git config commit.template .gitmessage` to prefill the format in your edito
 2. Cross-link related agents/skills/workflows.
 3. Add an entry to the directory `README.md` and, for agents, to the table in
    [`README.md`](README.md) and routing in [`AGENTS.md`](AGENTS.md).
+4. If a new `.claude/agents/` subagent is platform-specific (only iOS, or only Flutter), add it to
+   `PLATFORM_AGENTS` in [`bin/mobie.js`](bin/mobie.js) so `npx @sok_pich/mobie init` installs it only for
+   that platform. A new top-level content folder must also be added to `CONTENT_DIRS` there and
+   to `files` in `package.json`.
+   A shared subagent must not name a platform-specific path such as `skills/<topic>/flutter/…`:
+   that path isn't installed for other platforms, and `npx @sok_pich/mobie doctor` reports it as broken.
+
+## Releasing to npm
+
+Releases use npm trusted publishing (no stored token) and staged publishing: CI can only
+stage a version, and a maintainer makes it public with 2FA.
+
+1. Bump `version` in `package.json` (semver) and merge to `main`.
+2. Tag the merge commit: `git tag v1.2.3 && git push origin v1.2.3`.
+3. The [`npm package`](.github/workflows/npm.yml) workflow runs the tests and the `npx` smoke
+   test, checks that the tag matches `package.json`, and stages the version with provenance.
+4. Approve it (prompts for 2FA). Inspect first with `npm stage view` / `npm stage download`, or
+   discard it with `npm stage reject`:
+
+   ```bash
+   npm stage list @sok_pich/mobie
+   npm stage approve <stage-id>
+   ```
+
+The trusted publisher on npmjs.com is configured for `sokpichdev/mobie`, workflow `npm.yml`,
+environment `npm`. Renaming the workflow file or the environment breaks publishing until the npm
+settings are updated to match.
