@@ -52,6 +52,15 @@ cd your-project
 npx @sok_pich/mobie init
 ```
 
+No npm? Any of these works the same way:
+
+```bash
+brew install sokpichdev/tap/mobie && mobie init   # Homebrew (update: brew upgrade mobie)
+bunx @sok_pich/mobie init                         # Bun
+pnpm dlx @sok_pich/mobie init                     # pnpm
+yarn dlx @sok_pich/mobie init                     # Yarn 2+
+```
+
 `init` detects your platform (`Package.swift` / `*.xcodeproj` → iOS, `pubspec.yaml` → Flutter, …)
 and asks which AI tools you use. You can pick more than one; tools already configured in the
 project start out ticked:
