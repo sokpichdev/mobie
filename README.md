@@ -43,30 +43,47 @@ It is **not** a tutorial or handbook. It's an operational toolkit you point your
 
 ## Quick Start
 
-Get running in three steps. The everyday workflow needs **zero file paths**.
+Get running in two steps. All you need is Node.js 18+. The everyday workflow needs **zero file paths**.
 
-### 1. Clone the toolkit into your project
+### 1. Install the toolkit into your project
 
 ```bash
 cd your-project
-git clone https://github.com/sokpichdev/mobie.git .mobile-agents
-echo ".mobile-agents/" >> .gitignore   # optional: keep it out of your repo
+npx mobie init
 ```
 
-The hidden `.mobile-agents/` folder keeps the toolkit from cluttering your own files.
+`init` detects your platform (`Package.swift` / `*.xcodeproj` → iOS, `pubspec.yaml` → Flutter, …)
+and asks which AI tools you use. You can pick more than one; tools already configured in the
+project start out ticked:
 
-### 2. Wire up the entry file for your tool
-
-```bash
-echo "@.mobile-agents/CLAUDE.md" > CLAUDE.md             # Claude Code
-echo "@.mobile-agents/.cursorrules" > .cursorrules       # Cursor
-echo "@.mobile-agents/.windsurfrules" > .windsurfrules   # Windsurf
+```text
+Which AI coding tools do you use? ↑/↓ move · space select · a all · enter confirm
+❯ ◉ Claude Code — CLAUDE.md + .claude/ subagents
+  ◉ Codex / ChatGPT (OpenAI) — AGENTS.md
+  ◯ Gemini CLI — GEMINI.md
+  ◯ Cursor — .cursorrules
+  ◯ Windsurf — .windsurfrules
 ```
 
-The `@` import pulls in the full toolkit. Codex (`AGENTS.md`) and Gemini CLI (`GEMINI.md`)
-auto-load their entry files straight from the cloned folder — no extra step.
+Then it:
 
-### 3. Describe what you want
+- copies the toolkit into a hidden `.mobile-agents/` folder, with only your platform's skills
+  and templates
+- installs the Claude Code subagents and the `/review` command into `.claude/`, pointing them
+  at `.mobile-agents/`
+- adds a small marked block to each tool's entry file (`CLAUDE.md`, `.cursorrules`,
+  `.windsurfrules`, `AGENTS.md`, `GEMINI.md`). Your existing content is left as it is.
+
+Commit `.mobile-agents/` and `.claude/` so your whole team gets the same setup.
+
+| Option | Use it to |
+|--------|-----------|
+| `--platform ios\|flutter\|android\|react_native\|all` | override platform detection |
+| `--tool claude,codex,gemini,cursor,windsurf` (or `all`) | skip the question and choose the tools directly. `gpt`, `openai` and `chatgpt` also mean `codex` |
+| `--yes` | skip the question and use the detected tools (also what happens in CI or a non-interactive shell) |
+| `--dry-run` | preview the changes without writing anything |
+
+### 2. Describe what you want
 
 ```text
 > Build a Profile screen that loads /me and stores the auth token securely.
@@ -85,10 +102,27 @@ right experts and scales its process to the task. Head to
 ### Confirm & keep updated
 
 - **Quick check:** start a session — the `loaded ✓` line should head the reply.
-- **Deterministic check:** run `./verify.sh` (or `!verify` in-session, which runs
-  [`workflows/verify_setup.md`](workflows/verify_setup.md)) to validate every entry-point
-  file and the agent/skill/workflow/checklist counts.
-- **Update:** `cd .mobile-agents && git pull`.
+- **Deterministic check:** `npx mobie doctor` checks that the install is complete, that every
+  entry file loads the toolkit, and that the Claude subagents resolve into `.mobile-agents/`.
+- **Update:** `npx mobie@latest update`. Files you edited locally are left alone and listed in
+  the output; add `--force` to overwrite them with the toolkit version.
+
+<details>
+<summary>Manual install without Node (git clone)</summary>
+
+```bash
+cd your-project
+git clone https://github.com/sokpichdev/mobie.git .mobile-agents
+echo "@.mobile-agents/CLAUDE.md" > CLAUDE.md             # Claude Code
+echo "@.mobile-agents/.cursorrules" > .cursorrules       # Cursor
+echo "@.mobile-agents/.windsurfrules" > .windsurfrules   # Windsurf
+```
+
+Claude Code only discovers subagents and slash commands in the project-root `.claude/`, so a
+plain clone doesn't get them — use `npx mobie init` if you want those. Update with
+`cd .mobile-agents && git pull`.
+
+</details>
 
 ---
 
