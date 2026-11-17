@@ -40,6 +40,16 @@ Four concepts define the platform:
 Build with Xcode 27.1 or later. **An app built with Xcode 26 or earlier doesn't extend under
 the status bar and camera** on iPhone Duo, so it doesn't use the full display.
 
+This file covers the platform rules. For **integration patterns from production apps**, load the
+companion skill for the detected paradigm:
+
+- UIKit: [`iphone_duo_uikit_patterns.md`](iphone_duo_uikit_patterns.md) covers SDK gating, the
+  tab container seam, path-based pane routing that keeps existing `push` calls working, and
+  legacy resizing fixes.
+- SwiftUI: [`iphone_duo_swiftui_patterns.md`](iphone_duo_swiftui_patterns.md) covers the adoption
+  seam, list and detail in an `ArrangementView`, fold/unfold handoff that keeps state, independent
+  pane refresh, readable columns, and sheets.
+
 ## Use Cases
 
 - Auditing an existing iOS app for iPhone Duo readiness (both paradigms).
@@ -77,6 +87,24 @@ the status bar and camera** on iPhone Duo, so it doesn't use the full display.
 - **Games:** you may lock orientation, but you must fill the screen in every pose. Prefer
   changing the aspect ratio to letterboxing. If you can't avoid letterboxing, add artwork to the
   padding.
+
+### Adoption & gating
+
+- **Gate twice.** Wrap every Duo-only symbol in `#if canImport(UIKit, _version: …)` (so the
+  branch still compiles on an older Xcode) **and** `#available(iOS 27.1, *)`, so it still runs on
+  older iOS. Size-class, safe-area, and container-geometry fixes need no gate. Ship them to every
+  device.
+- **Layout follows size classes. Rollout may follow capability.** An existing app can put a
+  per-screen seam in front of a dedicated Duo composition, chosen by hinge detection, to keep
+  the regular iPhone UI unchanged while the work lands. Inside that composition, layout must
+  still come only from size classes and container bounds. Never use a model identifier for
+  layout.
+- **Continuity across poses is a hard requirement.** When the device folds or unfolds, move the
+  *same* view-controller, ViewModel, or selection between a push/sheet and a pane. Don't rebuild
+  it. Typed input, selection, and scroll position must survive. Do the move without push/pop
+  animation.
+- **Never show an empty pane.** At regular width, the trailing pane shows either the selection, a
+  companion screen, or a "select an item" placeholder.
 
 ### Reserved regions (custom views only)
 
@@ -191,6 +219,12 @@ the status bar and camera** on iPhone Duo, so it doesn't use the full display.
   navigation.
 - ❌ Keeping a camera session bound to a single `AVCaptureDevice` across display changes.
 - ❌ Shipping an iPhone Duo build compiled with Xcode 26 or earlier.
+- ❌ Casting tab children with `as? UINavigationController` after tabs are wrapped in an
+  arrangement container. Deep links and visible-screen lookups then fail silently.
+- ❌ An empty trailing pane, or a fold/unfold that recreates the open detail and drops typed
+  input.
+- ❌ Duo-only APIs used without both the compile-time (`canImport(_version:)`) and runtime
+  (`#available`) gate.
 
 ## Checklist
 
@@ -212,6 +246,10 @@ the status bar and camera** on iPhone Duo, so it doesn't use the full display.
 - [ ] Any vertical-bar opt-out is limited to full-screen, non-scrolling UI and doesn't change with
       state.
 - [ ] Camera features re-select the device by facing direction after display changes.
+- [ ] Duo-only code is gated at compile time and at run time. Ungated resizing fixes ship to all
+      devices.
+- [ ] Fold/unfold moves the open detail between push/sheet and pane without animation and
+      without losing input. The trailing pane is never empty.
 
 Also see [`../../../checklists/iphone_duo_review.md`](../../../checklists/iphone_duo_review.md).
 
@@ -396,6 +434,9 @@ override func layoutSubviews() {
 - In UIKit, create constraints once in `init(frame:)` per
   [`uikit_view_layer.md`](uikit_view_layer.md). Reserved-region adaptation only updates
   `constant`s or activates pre-built constraint sets.
+- After the platform rules, load the paradigm's production-patterns skill:
+  [`iphone_duo_uikit_patterns.md`](iphone_duo_uikit_patterns.md) or
+  [`iphone_duo_swiftui_patterns.md`](iphone_duo_swiftui_patterns.md).
 - Related: [`../../../standards/swiftui_standards.md`](../../../standards/swiftui_standards.md),
   [`../../../standards/uikit_standards.md`](../../../standards/uikit_standards.md),
   [`../../../workflows/prepare_app_for_iphone_duo.md`](../../../workflows/prepare_app_for_iphone_duo.md),

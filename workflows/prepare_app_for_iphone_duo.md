@@ -38,32 +38,47 @@ cameras. Ship this incrementally, one screen or flow per PR.
    and in Split View. Record: views that resize poorly, bars that don't go vertical, awkward
    presentations, and anything under the fold or a camera.
 3. **Static scan.** *(Refactoring Expert or UI Expert)* Grep for `userInterfaceIdiom`,
-   `UIScreen.main`, `interfaceOrientation`, custom `UIToolbar`/`UITabBar`/`UINavigationBar`
-   usage, fixed screen-level widths, and toolbar items that are text-only or symbol-only. Add
+   `UIScreen.main`, global screen-width constants, `as? UINavigationController` on tab children,
+   superview-pinned leading/trailing margins, `interfaceOrientation`, custom
+   `UIToolbar`/`UITabBar`/`UINavigationBar` usage, fixed screen-level widths, and toolbar items that are text-only or symbol-only. Add
    each hit to the report.
 4. **Architecture pass.** *(iOS Architect, only for substantial findings)* Decide which screens
    move to system containers (`NavigationSplitView`/`UISplitViewController`, arrangement views),
-   and confirm adaptive logic stays in the view layer, never in ViewModels or presenters.
-5. **Fix resizing first.** *(UI Expert)* Replace device and idiom checks with size classes and
+   and confirm adaptive logic stays in the view layer, never in ViewModels or presenters. Pick
+   the **adoption strategy**:
+   - One size-class-driven view per screen (the default).
+   - A per-screen seam with a dedicated Duo view, for existing apps where a regular-iPhone
+     regression is costly (SwiftUI).
+   - Path-based pane routing behind the tab container, for UIKit apps with push calls spread
+     throughout the code.
+
+   See the [UIKit](../skills/ui/ios/iphone_duo_uikit_patterns.md) and
+   [SwiftUI](../skills/ui/ios/iphone_duo_swiftui_patterns.md) production-pattern skills.
+5. **Gate and seam first, with no visual change.** *(UI Expert)* Add the compile-time
+   (`canImport(UIKit, _version:)`) and runtime (`#available(iOS 27.1, *)`) gates, the hinge
+   detector or tab-container factory, and the unwrapping accessor for tab children. Ship that
+   alone, then confirm deep links and visible-screen lookups still work.
+6. **Fix resizing first.** *(UI Expert)* Replace device and idiom checks with size classes and
    container geometry. Adopt Auto Layout / trait tracking (UIKit) and flexible frames (SwiftUI).
-   Preserve state across display changes.
-6. **Fix bars.** *(UI Expert)* Move custom bars into navigation-container toolbars. Give every
+   Preserve state across display changes. Fold/unfold hands off the open detail between a
+   push/sheet and the trailing pane, without animation and without recreating it.
+7. **Fix bars.** *(UI Expert)* Move custom bars into navigation-container toolbars. Give every
    item a title and a symbol. Order Back/Close first, pin Done, group related items, set
    visibility priorities, move custom overflow into the system menu, and pick a compression
    behavior per screen.
-7. **Fix the fold and cameras.** *(UI Expert)* Prefer arrangement views or split views. For
+8. **Fix the fold and cameras.** *(UI Expert)* Prefer arrangement views or split views. For
    custom layouts that remain, use `reservedRegions(kind:)`. Use even grid columns, and apply
    `backgroundExtensionEffect` / `UIBackgroundExtensionView` to hero images.
-8. **Camera flows** *(if any)*. *(UI Expert + Performance Expert)* Select the capture device by
+9. **Camera flows** *(if any)*. *(UI Expert + Performance Expert)* Select the capture device by
    facing direction and handle display changes mid-session.
-9. **Accessibility.** *(Accessibility Expert)* Check the largest Dynamic Type size on the outer
-   display, VoiceOver order with side bars and split panes, and RTL.
-10. **Tests.** *(Testing Expert)* Add previews or snapshots for compact and regular size classes.
+10. **Accessibility.** *(Accessibility Expert)* Check the largest Dynamic Type size on the outer
+    display, VoiceOver order with side bars and split panes, and RTL.
+11. **Tests.** *(Testing Expert)* Add previews or snapshots for compact and regular size classes.
     Make UI tests use accessibility identifiers only.
-11. **Review.** *(Code Reviewer)* Gate each PR with
+12. **Review.** *(Code Reviewer)* Gate each PR with
     [`checklists/iphone_duo_review.md`](../checklists/iphone_duo_review.md) plus the paradigm
     checklist.
-12. **Release.** *(Release Manager)* Prepare iPhone Duo screenshots (outer 1398×2034 / 2034×1398,
+13. **Release.** *(Release Manager)* Prepare iPhone Duo screenshots (outer 1398×2034 / 2034×1398,
     inner 2007×2853 / 2853×2007 px, per
     [screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications)),
     and note iPhone Duo support in the release notes.
@@ -93,8 +108,10 @@ cameras. Ship this incrementally, one screen or flow per PR.
 
 ## AI Agent Instructions
 
-- Load [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md)
-  plus the paradigm standard ([SwiftUI](../standards/swiftui_standards.md) or
+- Load [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md),
+  the paradigm's production-patterns skill
+  ([UIKit](../skills/ui/ios/iphone_duo_uikit_patterns.md) /
+  [SwiftUI](../skills/ui/ios/iphone_duo_swiftui_patterns.md)), plus the paradigm standard ([SwiftUI](../standards/swiftui_standards.md) or
   [UIKit](../standards/uikit_standards.md)) before editing.
 - Audit before fixing: produce the findings table first and get agreement on scope.
 - Fix one screen or flow per change. Don't combine a paradigm migration with iPhone Duo fixes.

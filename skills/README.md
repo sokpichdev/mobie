@@ -31,11 +31,13 @@ centralized in [`standards/flutter_standards.md`](../standards/flutter_standards
 
 ## UI
 
-> Note: apart from the cross-paradigm iPhone Duo skill, `skills/ui/` holds UIKit files only because SwiftUI's equivalent guidance lives in [`standards/swiftui_standards.md`](../standards/swiftui_standards.md) and [`agents/swiftui_expert.md`](../agents/swiftui_expert.md).
+> Note: apart from the iPhone Duo skills, `skills/ui/` holds UIKit files only because SwiftUI's equivalent guidance lives in [`standards/swiftui_standards.md`](../standards/swiftui_standards.md) and [`agents/swiftui_expert.md`](../agents/swiftui_expert.md).
 
 - [uikit_view_layer.md](ui/ios/uikit_view_layer.md) (iOS)
 - [massive_view_controller.md](ui/ios/massive_view_controller.md) (iOS)
 - [iphone_duo_adaptive_layout.md](ui/ios/iphone_duo_adaptive_layout.md) (iOS — SwiftUI + UIKit: resizing, reserved regions, vertical bars, arrangement views)
+- [iphone_duo_uikit_patterns.md](ui/ios/iphone_duo_uikit_patterns.md) (iOS — UIKit: SDK gating, tab container seam, path-based pane routing, legacy resizing fixes)
+- [iphone_duo_swiftui_patterns.md](ui/ios/iphone_duo_swiftui_patterns.md) (iOS — SwiftUI: adoption seam, list and detail, posture handoff, pane refresh, sheets)
 
 > Flutter widget guidance lives in [`standards/flutter_standards.md`](../standards/flutter_standards.md)
 > and [`agents/flutter_expert.md`](../agents/flutter_expert.md); the native boundary is covered by

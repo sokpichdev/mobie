@@ -55,6 +55,12 @@ private func setUpConstraints() {
 Screens must resize across the iPhone Duo outer display (compact width) and inner display
 (regular width), and when folded or in Split View. Full guidance:
 [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md).
+Retrofit patterns (gating, the tab container seam, path-based pane routing):
+[`skills/ui/ios/iphone_duo_uikit_patterns.md`](../skills/ui/ios/iphone_duo_uikit_patterns.md).
+
+- Gate Duo-only code with `#if canImport(UIKit, _version: …)` **and** `#available(iOS 27.1, *)`.
+- Never cast tab children with `as? UINavigationController`. Go through one accessor that also
+  unwraps an arrangement container.
 
 - Never use `UIDevice.userInterfaceIdiom`, `UIInterfaceOrientation`, or `UIScreen` bounds for
   layout decisions. Track `horizontalSizeClass`/`verticalSizeClass` with automatic trait tracking

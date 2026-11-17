@@ -47,6 +47,12 @@ var body: some View {
 Every screen must resize, because iPhone Duo runs the same app at compact width on the outer
 display and regular width on the inner display, folded or split. Full guidance:
 [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md).
+Production patterns (adoption seam, list and detail, posture handoff, sheets):
+[`skills/ui/ios/iphone_duo_swiftui_patterns.md`](../skills/ui/ios/iphone_duo_swiftui_patterns.md).
+
+- List and detail at regular width: `ArrangementView` with a stable selection ID, `.id(selection)`
+  on the detail, and an empty-selection placeholder. Fold/unfold moves the open detail between
+  push/sheet and pane without animation, and keeps its ViewModel.
 
 - Adapt to `horizontalSizeClass`/`verticalSizeClass` and container geometry. Never size to a
   specific device.
