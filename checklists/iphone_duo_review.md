@@ -9,12 +9,25 @@ UIKit. Tag findings Critical/High/Medium/Low/Nit, and block on Critical/High. So
 [HIG — Designing for iPhone Duo](https://developer.apple.com/design/human-interface-guidelines/designing-for-iphone-duo)
 and
 [Preparing your app for iPhone Duo](https://developer.apple.com/documentation/technologyoverviews/preparing-your-app-for-iphone-duo).
-How-to: [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md).
+How-to: [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md),
+plus the paradigm's production patterns:
+[UIKit](../skills/ui/ios/iphone_duo_uikit_patterns.md) /
+[SwiftUI](../skills/ui/ios/iphone_duo_swiftui_patterns.md).
 
 ## Build (Critical)
 
 - [ ] Built with Xcode 27.1 or later. Xcode 26 builds don't extend under the status bar and
       camera.
+
+## Gating & Adoption (Critical/High)
+
+- [ ] Every Duo-only symbol is behind `#if canImport(UIKit, _version: …)` **and**
+      `#available(iOS 27.1, *)`. The branch builds on the team's oldest supported Xcode.
+- [ ] If a per-screen seam (factory + dedicated Duo view) is used, the choice comes from hinge
+      capability, never a model identifier. Layout inside the Duo view is still size-class-driven,
+      and it shares ViewModels with the standard view.
+- [ ] (UIKit) No `as? UINavigationController` cast on tab children remains once tabs are wrapped
+      in an arrangement container. Deep links and visible-screen lookups still resolve.
 
 ## Resizing (Critical/High)
 
@@ -30,6 +43,13 @@ How-to: [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_
       path, and playback.
 - [ ] Every control and piece of content is reachable in every pose. Overflowed items are still
       reachable through the overflow menu.
+- [ ] Fold/unfold hands off the open detail between push/sheet and the trailing pane with no
+      push/pop animation. The same ViewModel or view-controller instance moves, so typed input
+      survives.
+- [ ] Handoff runs only for the visible tab or screen. A fold while the screen is hidden doesn't
+      present anything later.
+- [ ] At regular width the trailing pane is never empty (selection, companion, or placeholder).
+- [ ] Panes scroll and refresh independently. Refresh work isn't cancelled by a fold re-layout.
 
 ## Reserved Regions (High)
 
@@ -72,7 +92,9 @@ How-to: [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_
 - [ ] Arrangement views aren't nested in a `List`, `ScrollView`, or split-view column, and
       navigation wraps them.
 - [ ] Sheet placement (`presentationPlacement` / `preferredPlacement`) chosen deliberately on the
-      inner display.
+      inner display. Single-column forms and bottom sheets have a bounded width.
+- [ ] Sheet close uses the system close role inside a navigation toolbar where possible, and
+      there's never a second, custom ✕ at the same time.
 - [ ] Hero and background images extend under the vertical bar (`backgroundExtensionEffect` /
       `UIBackgroundExtensionView`).
 

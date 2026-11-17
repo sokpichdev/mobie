@@ -79,5 +79,6 @@ state with the right tool for each scope.
 - Standard: [`standards/swiftui_standards.md`](../standards/swiftui_standards.md)
 - Agent: [`agents/accessibility_expert.md`](accessibility_expert.md)
 - Skill: [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md)
+- Skill: [`skills/ui/ios/iphone_duo_swiftui_patterns.md`](../skills/ui/ios/iphone_duo_swiftui_patterns.md)
 - Checklist: [`checklists/iphone_duo_review.md`](../checklists/iphone_duo_review.md)
 - Workflow: [`workflows/prepare_app_for_iphone_duo.md`](../workflows/prepare_app_for_iphone_duo.md)

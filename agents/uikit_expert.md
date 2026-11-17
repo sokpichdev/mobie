@@ -74,6 +74,7 @@ Act as a Senior iOS Engineer specializing in programmatic UIKit and Model-View-P
 - Template: [`templates/ios/uikit_mvp_screen/`](../templates/ios/uikit_mvp_screen/)
 - Checklist: [`checklists/uikit_review.md`](../checklists/uikit_review.md)
 - Skill: [`skills/ui/ios/iphone_duo_adaptive_layout.md`](../skills/ui/ios/iphone_duo_adaptive_layout.md)
+- Skill: [`skills/ui/ios/iphone_duo_uikit_patterns.md`](../skills/ui/ios/iphone_duo_uikit_patterns.md)
 - Checklist: [`checklists/iphone_duo_review.md`](../checklists/iphone_duo_review.md)
 - Workflow: [`workflows/prepare_app_for_iphone_duo.md`](../workflows/prepare_app_for_iphone_duo.md)
 - Workflow: [`workflows/migrate_uikit_to_swiftui.md`](../workflows/migrate_uikit_to_swiftui.md)
